@@ -1,0 +1,14 @@
+/var/log/cbot/*log {
+    daily
+    rotate 14
+    compress
+    compresscmd /usr/bin/bzip2
+    compressext .bz2
+    dateext
+    minsize 100k
+    missingok
+    sharedscripts
+    postrotate
+        [ ! -f /var/run/supervisord.pid ] || kill -USR2 `cat /var/run/supervisord.pid`
+    endscript
+}

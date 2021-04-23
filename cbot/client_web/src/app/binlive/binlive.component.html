@@ -1,0 +1,14 @@
+<p *ngIf="binLive.length">{{ binLiveLastUpdate.toUTCString() }}</p>
+<div id="bin-live-data">
+    <div *ngFor="let item of binLive; let i = index">
+        <span class="idx">{{ i + 1 }})</span>
+        <span class="symbol">
+            <a href="https://www.binance.com/en/trade/{{ item['s'] }}" target="_blank">{{ item['s'] }}</a>
+        </span>
+        <span class="tick" [ngClass]="{'up':isPositive(item['1m'])}">1m: {{ item['1m'] }}</span>
+        <span class="tick" [ngClass]="{'up':isPositive(item['3m'])}">3m: {{ item['3m'] }}</span>
+        <span class="tick" [ngClass]="{'up':isPositive(item['5m'])}">5m: {{ item['5m'] }}</span>
+        <span class="tick" [ngClass]="{'up':isPositive(item['10m'])}">10m: {{ item['10m'] }}</span>
+        <span class="tick" [ngClass]="{'up':isPositive(item['15m'])}">15m: {{ item['15m'] }}</span>
+    </div>
+</div>

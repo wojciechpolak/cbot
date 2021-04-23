@@ -1,0 +1,37 @@
+<mat-card class="task">
+    <mat-card-title>
+        #{{ task.id }} ({{ task.name }})
+    </mat-card-title>
+    <mat-card-content>
+        <span matTooltip="{{ UtilsService.toDate(task.start_time) }}">
+            Started {{ UtilsService.formatFromNow(task.start_time) }}
+        </span>
+        <span *ngIf="task.is_finished">(finished)</span>
+        <span *ngIf="task.is_paused">(paused)</span>
+        <span *ngIf="task.desc">[{{ task.desc }}]</span>
+        <p class="output" [innerHTML]="formatOutput()"></p>
+    </mat-card-content>
+    <mat-card-actions>
+        <button mat-button (click)="toggleTaskInfo()">
+            {{ showTaskData && 'HIDE INFO' || 'SHOW INFO' }}
+        </button>
+        <button mat-button (click)="getTaskOutput()">
+            GET
+        </button>
+        <button *ngIf="!task.is_finished" mat-button (click)="modifyTask()">
+            MODIFY
+        </button>
+        <button mat-button (click)="cloneTask()">
+            CLONE
+        </button>
+        <button *ngIf="!task.is_finished" mat-button (click)="pauseTask()">
+            {{ task.is_paused ? 'UNPAUSE' : 'PAUSE' }}
+        </button>
+        <button *ngIf="!task.is_finished" mat-button (click)="killTask()">
+            KILL
+        </button>
+    </mat-card-actions>
+    <div *ngIf="showTaskData" class="data">
+        {{ formatData() }}
+    </div>
+</mat-card>

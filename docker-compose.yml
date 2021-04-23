@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  cbot:
+    image: ${APP_IMAGE:-ghcr.io/wojciechpolak/cbot:latest}
+    restart: unless-stopped
+    build: .
+    volumes:
+        - /etc/cbot:/etc/cbot
+        - data:/app/run
+    ports:
+        - "8080:80"
+        - "2268:2268"
+        - "2269:2269"
+volumes:
+  data:

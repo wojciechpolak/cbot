@@ -1,0 +1,23 @@
+<nav id="tasks-bottom-actions">
+    <button *ngIf="tasksFinished.length" mat-flat-button color="secondary"
+            (click)="cleanTasks()">REMOVE FINISHED TASKS</button>
+    <button *ngIf="!createMode" mat-flat-button color="primary"
+            (click)="openCreateTask(true)">CREATE TASK</button>
+</nav>
+
+<app-task-create *ngIf="createMode" id="task-create"
+                 [cloneTask]="cloneTask"
+                 [modifyTask]="modifyTask"
+                 (closeCreate)="closeCreateTask()">
+</app-task-create>
+
+<div *ngFor="let task of tasksRunning">
+    <app-task-card [task]="task"
+                   (switchToTerminal)="switchToTerminal.emit()"></app-task-card>
+</div>
+
+<h3 *ngIf="tasksFinished.length" class="finished-tasks">Finished tasks:</h3>
+<div *ngFor="let task of tasksFinished">
+    <app-task-card [task]="task"
+                   (switchToTerminal)="switchToTerminal.emit()"></app-task-card>
+</div>

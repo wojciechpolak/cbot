@@ -1,0 +1,224 @@
+/**
+ * styles.scss
+ *
+ * CBot Copyright (C) 2022 Wojciech Polak
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+@use '@angular/material' as mat;
+@include mat.all-component-typographies();
+@include mat.core();
+
+@import '@fontsource/material-icons';
+@import '@fontsource/roboto/300.css';
+@import '@fontsource/roboto/400.css';
+@import '@fontsource/roboto/500.css';
+
+// light theme
+$light-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$light-accent: mat.m2-define-palette(mat.$m2-pink-palette);
+$light-theme: mat.m2-define-light-theme((
+    color: (
+        primary: $light-primary,
+        accent: $light-accent,
+    )
+));
+
+// dark theme
+$dark-primary: mat.m2-define-palette(mat.$m2-pink-palette);
+$dark-accent: mat.m2-define-palette(mat.$m2-blue-gray-palette);
+$dark-theme: mat.m2-define-dark-theme((
+    color: (
+        primary: $dark-primary,
+        accent: $dark-accent,
+    )
+));
+
+@include mat.all-component-themes($light-theme);
+
+@media (prefers-color-scheme: dark) {
+    @include mat.all-component-colors($dark-theme);
+}
+
+html, body {
+    height: 100%;
+}
+body {
+    margin: 0;
+    font-family: Roboto, "Helvetica Neue", sans-serif;
+    @media (prefers-color-scheme: light) {
+        &.mat-app-background {
+            background-color: white;
+        }
+    }
+}
+
+#main {
+    padding: 0 7px;
+    section {
+        padding: .5em;
+    }
+}
+
+form {
+    button {
+        margin-left: 0.5em !important;
+    }
+}
+
+mat-toolbar {
+    font-size: 16px !important;
+    .spacer {
+        flex: 1 1 auto;
+    }
+}
+.mat-toolbar-single-row {
+    height: 32px;
+}
+
+#terminal-input {
+    mat-form-field {
+        @media screen and (min-width: 1366px) {
+            width: 40%;
+        }
+    }
+    mat-checkbox {
+        margin-left: 2em;
+    }
+}
+
+#output {
+    background-color: #444;
+    color: #eee;
+    width: 95%;
+    height: 550px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    font-family: Menlo, monospace;
+    font-size: 11px;
+    padding: 1em;
+    white-space: pre-wrap;
+    li {
+        list-style: none;
+        margin-bottom: 4px;
+    }
+}
+
+#tasks {
+    .finished-tasks {
+        margin-top: 1em;
+    }
+    .task {
+        margin-top: 6px;
+        padding: 1em;
+        @media (prefers-color-scheme: light) {
+            background-color: #fafafa;
+        }
+        mat-card-content {
+            margin-bottom: 0;
+            span {
+                margin-right: 5px;
+            }
+            .output {
+                padding-top: 4px;
+                font-family: monospace;
+            }
+        }
+        .data {
+            white-space: pre;
+        }
+    }
+    #tasks-bottom-actions {
+        margin-top: 3px;
+    }
+    #task-create {
+        padding: 1em;
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 1em;
+            .app-form-field {
+                width: 350px;
+                mat-form-field {
+                    width: 350px;
+                }
+            }
+            mat-checkbox, mat-label {
+                text-transform: capitalize;
+            }
+            nav {
+                margin-top: 1em;
+            }
+        }
+    }
+}
+
+#tickers {
+    padding: 1em;
+    span {
+        display: inline-block;
+        width: 110px;
+    }
+}
+
+#connection-status {
+    float: right;
+    padding: 2px;
+    .connected span {
+        color: green;
+    }
+    .disconnected span {
+        color: gray;
+    }
+}
+
+#bin-live {
+    padding: 1em;
+}
+#bin-live-data {
+    margin-top: 2em;
+    font-family: monospace;
+    font-size: 95%;
+
+    @media screen and (min-width: 1366px) {
+        column-count: 2;
+    }
+
+    .idx {
+        display: inline-block;
+        width: 20px;
+    }
+    .symbol {
+        display: inline-block;
+        width: 70px;
+        padding-left: 1em;
+    }
+    .tick {
+        display: inline-block;
+        width: 90px;
+        &.up {
+            color: green;
+        }
+        &:not(.up) {
+            color: red;
+        }
+    }
+}
+
+#status {
+    padding: 1em;
+    white-space: pre-wrap;
+}

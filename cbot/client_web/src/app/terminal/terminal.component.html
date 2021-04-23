@@ -1,0 +1,20 @@
+<section id="terminal-input">
+    <mat-autocomplete #auto="matAutocomplete">
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+            {{ option }}
+        </mat-option>
+    </mat-autocomplete>
+    <form (submit)="onEnter($event)">
+        <mat-form-field appearance="fill">
+            <mat-label>Input</mat-label>
+            <input id="input"
+                   matInput
+                   [matAutocomplete]="auto"
+                   [formControl]="inputControl">
+        </mat-form-field>
+        <button mat-raised-button color="primary" (click)="onEnter($event)">Enter</button>
+        <button mat-raised-button (click)="resetTerminal()">Reset</button>
+        <mat-checkbox (change)="onDebugCheck($event)">Debug</mat-checkbox>
+    </form>
+</section>
+<ul id="output"></ul>
