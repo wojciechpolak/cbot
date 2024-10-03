@@ -13,7 +13,7 @@ use, nor is it likely to be polished for broader distribution.
 ### Running with Docker (out of the box)
 
 ```shell
-docker run -it -p 8080:80 --name cbot ghcr.io/wojciechpolak/cbot
+docker run -it -p 8080:80 -p 2269:2269 --name cbot ghcr.io/wojciechpolak/cbot
 ```
 
 ### Running with Docker Compose
