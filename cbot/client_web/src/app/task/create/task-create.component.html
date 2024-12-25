@@ -1,36 +1,56 @@
-<h2 *ngIf="!modifyTask">Create Task</h2>
-<h2 *ngIf="modifyTask">Modify Task - {{ refTask?.name }} #{{ refTask?.id }}</h2>
+@if (!modifyTask) {
+    <h2>Create Task</h2>
+}
+@else {
+    <h2>Modify Task - {{ refTask?.name }} #{{ refTask?.id }}</h2>
+}
 
 <form [formGroup]="form" (ngSubmit)="create()">
-    <mat-form-field *ngIf="!modifyTask" class="app-form-field">
-        <mat-label>Task</mat-label>
-        <mat-select formControlName="cmd" (selectionChange)="changeTaskType()">
-            <mat-option *ngFor="let item of taskList" value="{{ item }}">{{ item }}</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <div *ngFor="let def of formFields" class="app-form-field">
-        <div [ngSwitch]="def.type">
-            <mat-form-field *ngSwitchCase="'number'">
-                <mat-label>{{ def.name }}</mat-label>
-                <input type="number" matInput [formControlName]="def.name"
-                       [required]="def.required">
-            </mat-form-field>
-            <mat-form-field *ngSwitchCase="'float'">
-                <mat-label>{{ def.name }}</mat-label>
-                <input type="number" matInput [formControlName]="def.name"
-                       [required]="def.required">
-            </mat-form-field>
-            <div *ngSwitchCase="'checkbox'" class="mat-form-field">
-                <mat-checkbox [formControlName]="def.name" [required]="def.required">
-                    {{ def.name }}
-                </mat-checkbox>
+    @if (!modifyTask) {
+        <mat-form-field class="app-form-field">
+            <mat-label>Task</mat-label>
+            <mat-select formControlName="cmd" (selectionChange)="changeTaskType()">
+                @for (item of taskList; track item) {
+                    <mat-option value="{{ item }}">{{ item }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    }
+    @for (def of formFields; track def) {
+        <div class="app-form-field">
+            <div>
+                @switch (def.type) {
+                    @case ('number') {
+                        <mat-form-field>
+                            <mat-label>{{ def.name }}</mat-label>
+                            <input type="number" matInput [formControlName]="def.name"
+                                   [required]="def.required">
+                        </mat-form-field>
+                    }
+                    @case ('float') {
+                        <mat-form-field>
+                            <mat-label>{{ def.name }}</mat-label>
+                            <input type="number" matInput [formControlName]="def.name"
+                                   [required]="def.required">
+                        </mat-form-field>
+                    }
+                    @case ('checkbox') {
+                        <div class="mat-form-field">
+                            <mat-checkbox [formControlName]="def.name" [required]="def.required">
+                                {{ def.name }}
+                            </mat-checkbox>
+                        </div>
+                    }
+                    @default {
+                        <mat-form-field>
+                            <mat-label>{{ def.name }}</mat-label>
+                            <input matInput [formControlName]="def.name" value="{{ def.default }}">
+                        </mat-form-field>
+                    }
+                }
             </div>
-            <mat-form-field *ngSwitchDefault>
-                <mat-label>{{ def.name }}</mat-label>
-                <input matInput [formControlName]="def.name" value="{{ def.default }}">
-            </mat-form-field>
         </div>
-    </div>
+    }
     <nav>
         <button mat-flat-button color="secondary" (click)="cancel()">CANCEL</button>
         <button mat-flat-button color="primary" type="submit">{{ modifyTask ? 'MODIFY' : 'LAUNCH' }}</button>

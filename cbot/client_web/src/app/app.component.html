@@ -2,8 +2,11 @@
     <span>CBot</span>
     <span class="spacer"></span>
     <div id="connection-status">
-        <span *ngIf="isConnected" class="connected"><span>●</span> Connected</span>
-        <span *ngIf="!isConnected" class="disconnected"><span>●</span> No connection</span>
+        @if (isConnected) {
+            <span class="connected"><span>●</span> Connected</span>
+        } @else {
+            <span class="disconnected"><span>●</span> No connection</span>
+        }
     </div>
 </mat-toolbar>
 
@@ -16,9 +19,9 @@
         <mat-tab label="Tasks"></mat-tab>
         <mat-tab>
             <ng-template matTabLabel>
-            <span matBadge="+"
-                  [matBadgeHidden]="currentTab === Tabs.BIN_LIVE || !binLiveNotification"
-                  matBadgeOverlap="false">Bin Live</span>
+                <span matBadge="+"
+                      [matBadgeHidden]="currentTab === Tabs.BIN_LIVE || !binLiveNotification"
+                      matBadgeOverlap="false">Bin Live</span>
             </ng-template>
         </mat-tab>
         <mat-tab label="Tickers"></mat-tab>
@@ -38,16 +41,18 @@
     </section>
 
     <section id="tickers" [hidden]="currentTab !== Tabs.TICKERS">
-        <div *ngFor="let tick of binLiveTickers">
-            <span>
-                <a href="https://www.binance.com/en/trade/{{ tick['s'] }}" target="_blank">{{ tick['s'] }}</a>
-            </span>
-            <span>{{ tick['c'] }}</span>
-            <span>{{ tick['P'] }}%</span>
-            <span>
-                <a href="https://www.tradingview.com/symbols/{{ tick['s'] }}/" target="_blank">TV</a>
-            </span>
-        </div>
+        @for (tick of binLiveTickers; track tick) {
+            <div>
+                <span>
+                    <a href="https://www.binance.com/en/trade/{{ tick['s'] }}" target="_blank">{{ tick['s'] }}</a>
+                </span>
+                <span>{{ tick['c'] }}</span>
+                <span>{{ tick['P'] }}%</span>
+                <span>
+                    <a href="https://www.tradingview.com/symbols/{{ tick['s'] }}/" target="_blank">TV</a>
+                </span>
+            </div>
+        }
     </section>
 
     <section id="status" [hidden]="currentTab !== Tabs.STATUS">

@@ -23,6 +23,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { concat, interval, Subscription } from 'rxjs';
 import { first } from 'rxjs/operators';
 
+import { AppBinLiveComponent } from './binlive/binlive.component';
+import { AppMaterialModules } from './app-modules';
+import { AppStatusComponent } from './status/status.component';
+import { AppTaskListComponent } from './task/list/task-list.component';
+import { AppTerminalComponent } from './terminal/terminal.component';
 import { StreamEvent, StreamService, StreamType } from './services/stream.service';
 
 enum Tabs {
@@ -36,6 +41,13 @@ enum Tabs {
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
+    imports: [
+        ...AppMaterialModules,
+        AppBinLiveComponent,
+        AppStatusComponent,
+        AppTaskListComponent,
+        AppTerminalComponent,
+    ]
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 

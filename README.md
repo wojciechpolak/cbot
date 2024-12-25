@@ -19,7 +19,7 @@ docker run -it -p 8080:80 -p 2269:2269 --name cbot ghcr.io/wojciechpolak/cbot
 ### Running with Docker Compose
 
 ```shell
-docker compose up
+curl https://raw.githubusercontent.com/wojciechpolak/cbot/master/docker-compose.yml | docker compose -f - up
 ```
 
 ### Building Docker image from source

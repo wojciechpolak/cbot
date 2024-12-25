@@ -32,9 +32,7 @@ describe('AppComponent', () => {
                 RouterTestingModule,
                 MatSnackBarModule,
                 ServiceWorkerModule.register('ngsw-worker.js', {enabled: false}),
-            ],
-            declarations: [
-                AppComponent
+                AppComponent,
             ],
             providers: [
                 {

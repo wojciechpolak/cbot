@@ -18,7 +18,9 @@
  */
 
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+
+import { AppMaterialModules } from '../../app-modules';
 import { StreamService } from '../../services/stream.service';
 import { Task, TaskInput, TaskMap } from '../task';
 
@@ -117,6 +119,10 @@ export const TaskCreateMap: TaskMap = {
 @Component({
     selector: 'app-task-create',
     templateUrl: './task-create.component.html',
+    imports: [
+        ...AppMaterialModules,
+        ReactiveFormsModule,
+    ]
 })
 export class AppTaskCreateComponent implements OnInit {
 

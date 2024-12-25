@@ -18,12 +18,15 @@
  */
 
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { StreamEvent, StreamService, StreamType } from '../services/stream.service';
+import { NgClass } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { StreamEvent, StreamService, StreamType } from '../services/stream.service';
+
 
 @Component({
     selector: 'app-binlive',
     templateUrl: './binlive.component.html',
+    imports: [NgClass]
 })
 export class AppBinLiveComponent implements AfterViewInit, OnDestroy {
 

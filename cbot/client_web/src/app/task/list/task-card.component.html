@@ -3,12 +3,18 @@
         #{{ task.id }} ({{ task.name }})
     </mat-card-title>
     <mat-card-content>
-        <span matTooltip="{{ UtilsService.toDate(task.start_time) }}">
-            Started {{ UtilsService.formatFromNow(task.start_time) }}
-        </span>
-        <span *ngIf="task.is_finished">(finished)</span>
-        <span *ngIf="task.is_paused">(paused)</span>
-        <span *ngIf="task.desc">[{{ task.desc }}]</span>
+    <span matTooltip="{{ UtilsService.toDate(task.start_time) }}">
+      Started {{ UtilsService.formatFromNow(task.start_time) }}
+    </span>
+        @if (task.is_finished) {
+            <span>(finished)</span>
+        }
+        @if (task.is_paused) {
+            <span>(paused)</span>
+        }
+        @if (task.desc) {
+            <span>[{{ task.desc }}]</span>
+        }
         <p class="output" [innerHTML]="formatOutput()"></p>
     </mat-card-content>
     <mat-card-actions>
@@ -18,20 +24,28 @@
         <button mat-button (click)="getTaskOutput()">
             GET
         </button>
-        <button *ngIf="!task.is_finished" mat-button (click)="modifyTask()">
-            MODIFY
-        </button>
+        @if (!task.is_finished) {
+            <button mat-button (click)="modifyTask()">
+                MODIFY
+            </button>
+        }
         <button mat-button (click)="cloneTask()">
             CLONE
         </button>
-        <button *ngIf="!task.is_finished" mat-button (click)="pauseTask()">
-            {{ task.is_paused ? 'UNPAUSE' : 'PAUSE' }}
-        </button>
-        <button *ngIf="!task.is_finished" mat-button (click)="killTask()">
-            KILL
-        </button>
+        @if (!task.is_finished) {
+            <button mat-button (click)="pauseTask()">
+                {{ task.is_paused ? 'UNPAUSE' : 'PAUSE' }}
+            </button>
+        }
+        @if (!task.is_finished) {
+            <button mat-button (click)="killTask()">
+                KILL
+            </button>
+        }
     </mat-card-actions>
-    <div *ngIf="showTaskData" class="data">
-        {{ formatData() }}
-    </div>
+    @if (showTaskData) {
+        <div class="data">
+            {{ formatData() }}
+        </div>
+    }
 </mat-card>

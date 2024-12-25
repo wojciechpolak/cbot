@@ -18,16 +18,24 @@
  */
 
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormControl } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
 import { MatCheckboxChange } from '@angular/material/checkbox';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
+
+import { AppMaterialModules } from '../app-modules';
 import { StreamEvent, StreamService, StreamType } from '../services/stream.service';
 import { TaskList } from '../task/list/task-list.component';
 
 @Component({
     selector: 'app-terminal',
     templateUrl: './terminal.component.html',
+    imports: [
+        ...AppMaterialModules,
+        AsyncPipe,
+        ReactiveFormsModule,
+    ]
 })
 export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
 

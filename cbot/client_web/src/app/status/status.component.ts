@@ -24,7 +24,7 @@ import { environment } from '../../environments/environment';
 
 @Component({
     selector: 'app-status',
-    templateUrl: './status.component.html',
+    templateUrl: './status.component.html'
 })
 export class AppStatusComponent implements AfterViewInit, OnDestroy {
 

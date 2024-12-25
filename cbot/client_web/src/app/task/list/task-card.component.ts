@@ -18,16 +18,23 @@
  */
 
 import { AfterViewInit, Component, EventEmitter, Inject, Input, OnDestroy, Output } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { MatButton } from '@angular/material/button';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
-import { TaskService } from '../task.service';
+
+import { AppMaterialModules } from '../../app-modules';
 import { StreamEvent, StreamService, StreamType } from '../../services/stream.service';
 import { Task } from '../task';
+import { TaskService } from '../task.service';
 import { UtilsService } from '../../services/utils.service';
 
 @Component({
     selector: 'app-task-card',
     templateUrl: './task-card.component.html',
+    imports: [
+        ...AppMaterialModules
+    ]
 })
 export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
 
@@ -140,8 +147,8 @@ ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
 }
 
 @Component({
-  selector: 'app-confirm-dialog',
-  template: `
+    selector: 'app-confirm-dialog',
+    template: `
       <h2 mat-dialog-title>Confirm</h2>
       <mat-dialog-content class="mat-typography">
           <h3>Do you want to kill process #{{ data.taskId }}?</h3>
@@ -149,7 +156,11 @@ ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
       <mat-dialog-actions align="end">
           <button mat-button mat-dialog-close>Cancel</button>
           <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Yes!</button>
-      </mat-dialog-actions>`
+      </mat-dialog-actions>`,
+    imports: [
+        ...AppMaterialModules,
+        CdkScrollable,
+    ]
 })
 export class ConfirmDialogComponent {
     constructor(@Inject(MAT_DIALOG_DATA) public data: any) {

@@ -14,7 +14,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry config installer.max-workers 10
 RUN poetry install --no-dev -n
 
-FROM node:20.17-slim AS cbot-builder-node
+FROM node:22.12-slim AS cbot-builder-node
 WORKDIR /app
 COPY cbot/client_web/*.json .
 COPY cbot/client_web/*.js .

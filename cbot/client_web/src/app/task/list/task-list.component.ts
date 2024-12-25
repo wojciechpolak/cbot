@@ -19,9 +19,13 @@
 
 import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
+
+import { AppMaterialModules } from '../../app-modules';
+import { AppTaskCardComponent } from './task-card.component';
+import { AppTaskCreateComponent } from '../create/task-create.component';
 import { StreamEvent, StreamService, StreamType } from '../../services/stream.service';
-import { TaskService } from '../task.service';
 import { Task } from '../task';
+import { TaskService } from '../task.service';
 
 export const TaskList = [
     'bin_live',
@@ -52,6 +56,11 @@ export const TaskList = [
 @Component({
     selector: 'app-task-list',
     templateUrl: './task-list.component.html',
+    imports: [
+        ...AppMaterialModules,
+        AppTaskCardComponent,
+        AppTaskCreateComponent,
+    ]
 })
 export class AppTaskListComponent implements AfterViewInit, OnDestroy {
 
