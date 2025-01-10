@@ -1,7 +1,7 @@
 """
 # savegame.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -33,10 +33,10 @@ def save_data():
     logger.info('Saving data to %s', config.conf.datafile)
     try:
         with open(config.conf.datafile, 'wb') as fp:
-            memstore.add('savegame_last_update', datetime.now())
+            memstore.add('memento_last_update', datetime.now())
             snapshot = {
-                'tasks': task_manager.to_savegame(),
-                'memstore': memstore.to_savegame(),
+                'tasks': task_manager.create_memento(),
+                'memstore': memstore.create_memento(),
             }
             pickle.dump(snapshot, fp)
     except Exception:
@@ -55,8 +55,8 @@ async def load_data():
     try:
         with open(config.conf.datafile, 'rb') as fp:
             snapshot = pickle.load(fp)
-            task_manager.from_savegame(snapshot['tasks'])
-            memstore.from_savegame(snapshot['memstore'])
+            task_manager.restore_from_memento(snapshot['tasks'])
+            memstore.restore_from_memento(snapshot['memstore'])
     except IOError:
         pass
     except Exception:

@@ -1,7 +1,7 @@
 """
 # periodic.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -33,7 +33,7 @@ class PeriodicRunStatus(Enum):
     ERROR_HARD = 2
 
 
-class Periodic:
+class PeriodicTaskRunner:
     def __init__(self, func: Callable, interval: int = None, task: Task = None):
         self.func = func
         self.interval = interval

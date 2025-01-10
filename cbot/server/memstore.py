@@ -1,7 +1,7 @@
 """
 # memstore.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -66,10 +66,10 @@ class MemStore:
     def get_ticker(self, exchange: str, key: str, default: Any = None):
         self.store['tickers'][exchange].get(key, default)
 
-    def to_savegame(self):
+    def create_memento(self):
         return self.store
 
-    def from_savegame(self, store):
+    def restore_from_memento(self, store):
         self.store = store
 
 

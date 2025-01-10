@@ -1,7 +1,7 @@
 """
 # job_ping.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -21,8 +21,9 @@ import asyncio
 from typing import cast
 
 from cbot.server.logger import logger
-from cbot.server.periodic import Periodic, PeriodicRunStatus
+from cbot.server.periodic import PeriodicTaskRunner, PeriodicRunStatus
 from cbot.server.task import Task
+from cbot.server.tasks.base import JobStrategy
 from cbot.server.tasks.data import TaskData
 
 
@@ -51,29 +52,30 @@ class Data(TaskData):
                 logger.error('Invalid call argument: %s', k)
 
 
-async def job_ping(task: Task):
-    if task.data is None:
-        task.data = Data()
-        task.data.map_options(task.op.args, task.op.kwargs)
+class JobPing(JobStrategy):
+    async def run(self, task: Task):
+        if task.data is None:
+            task.data = Data()
+            task.data.map_options(task.op.args, task.op.kwargs)
 
-    t1 = Periodic(job_ping_run, task=task)
-    await t1.start(task)
-    try:
-        while t1.is_running:
-            await asyncio.sleep(task.data.interval)
-        task.set_finished()
-    finally:
-        await t1.stop()
+        t1 = PeriodicTaskRunner(self.job_ping_run, task=task)
+        await t1.start(task)
+        try:
+            while t1.is_running:
+                await asyncio.sleep(task.data.interval)
+            task.set_finished()
+        finally:
+            await t1.stop()
 
 
-async def job_ping_run(task: Task):
-    printer = task.printer
-    data = cast(Data, task.data)
+    async def job_ping_run(self, task: Task):
+        printer = task.printer
+        data = cast(Data, task.data)
 
-    data.iteration += 1
-    out = f'Ping #{data.iteration:d}'
-    printer(out)
-    if data.max_iter and data.max_iter <= data.iteration:
-        return PeriodicRunStatus.DONE
+        data.iteration += 1
+        out = f'Ping #{data.iteration:d}'
+        printer(out)
+        if data.max_iter and data.max_iter <= data.iteration:
+            return PeriodicRunStatus.DONE
 
-    return PeriodicRunStatus.CONTINUE
+        return PeriodicRunStatus.CONTINUE

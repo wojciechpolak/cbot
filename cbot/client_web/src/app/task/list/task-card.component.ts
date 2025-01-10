@@ -18,8 +18,7 @@
  */
 
 import { AfterViewInit, Component, EventEmitter, Inject, Input, OnDestroy, Output } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
-import { MatButton } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
 

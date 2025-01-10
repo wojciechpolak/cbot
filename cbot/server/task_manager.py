@@ -1,7 +1,7 @@
 """
 # task_manager.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -19,7 +19,6 @@
 
 import asyncio
 import json
-import pprint
 import shlex
 from datetime import datetime
 from importlib import import_module, reload
@@ -28,13 +27,14 @@ from typing import Dict, List, Any
 import pycron
 
 from cbot import VERSION
-from cbot.server import mail
+from cbot.server.commands.factory import CommandFactory
 from cbot.server.memstore import memstore
 from cbot.server.event_bus import event_bus, Event
 from cbot.server.logger import logger
 from cbot.server.operation import Operation
-from cbot.server.periodic import Periodic, PeriodicRunStatus
-from cbot.server.task import Task, TaskInfo
+from cbot.server.periodic import PeriodicTaskRunner, PeriodicRunStatus
+from cbot.server.task import Task, TaskMemento
+from cbot.server.tasks.factory import JobFactory
 from cbot.server.utils import get_timestamp
 
 RESP_OK = 'OK'
@@ -97,14 +97,10 @@ class TaskManager:
             del op.kwargs['cron']
             self.cron_add(cron_schedule, op)
             return
-        cmd = op.cmd
-        mod = import_module('cbot.server.tasks.job_' + cmd)
-        job = getattr(mod, 'job_' + cmd, None)
-        if callable(job):
-            self.add(Task(op, job, name=cmd))
-            self.emit_lists()
-        else:
-            logger.error('Non-callable job: %s', cmd)
+        job_strategy = JobFactory.create_job(op.cmd)
+        task = Task(op, job_strategy.run, name=op.cmd)
+        self.add(task)
+        self.emit_lists()
 
     def get_all_lists(self):
         return {
@@ -120,7 +116,7 @@ class TaskManager:
         return self.task_list
 
     def tasks_get_info_list(self):
-        return list(map(lambda x: x.to_info_dict(), self.task_list))
+        return [x.to_info_dict() for x in self.task_list]
 
     def cron_get_list(self):
         return self.cron_list
@@ -227,7 +223,7 @@ class TaskManager:
             return ret
         return 'pause: unknown task id #%d' % task_id
 
-    def reload(self, cmd: str) -> str:  # pylint: disable=no-self-use
+    def reload(self, cmd: str) -> str:
         mod = import_module('cbot.server.tasks.job_' + cmd)
         reload(mod)
         return 'Reloaded cbot.server.tasks.job_' + cmd
@@ -279,7 +275,7 @@ class TaskManager:
         self.emit_lists()
 
     async def scheduler_start(self):
-        self.scheduler_job = Periodic(self.scheduler_runner, interval=60)
+        self.scheduler_job = PeriodicTaskRunner(self.scheduler_runner, interval=60)
         await self.scheduler_job.start()
         try:
             while self.scheduler_job.is_running:
@@ -300,33 +296,34 @@ class TaskManager:
                 self.start(cron_entry.op)
         return PeriodicRunStatus.CONTINUE
 
-    def to_savegame(self):
+    def savegame(self):
+        event_bus.emit(Event.SAVEGAME)
+
+    def create_memento(self):
         data = {
             'counter': self.counter,
             'cron_list': self.cron_list,
             'ifttt_list': self.ifttt_list,
-            'tasks': list(map(lambda x: x.to_savegame(), self.task_list)),
+            'tasks': [x.create_memento() for x in self.task_list],
         }
-        logger.debug('task_manager::to_savegame: %s', data)
+        logger.debug('task_manager::create_memento: %s', data)
         return data
 
-    def from_savegame(self, pick_data):
-        logger.debug('task_manager::from_savegame: %s', pick_data)
+    def restore_from_memento(self, pick_data):
+        logger.debug('task_manager::restore_from_memento: %s', pick_data)
         self.counter = pick_data['counter']
         self.cron_list = pick_data.get('cron_list', [])
         self.ifttt_list = pick_data.get('ifttt_list', [])
 
-        task_info: TaskInfo
-        for task_info in pick_data['tasks']:
-            op = task_info.op
-            name = task_info.name
-            mod = import_module('cbot.server.tasks.job_' + op.cmd)
-            job = getattr(mod, 'job_' + name, None)
-            if callable(job):
-                task = Task(op, job, name=name, task_info=task_info)
-                self.task_list.append(task)
+        task_memento: TaskMemento
+        for task_memento in pick_data['tasks']:
+            op = task_memento.op
+            name = task_memento.name
+            job_strategy = JobFactory.create_job(op.cmd)
+            task = Task(op, job_strategy.run, name=name, task_memento=task_memento)
+            self.task_list.append(task)
 
-    async def process_request(self, request: str) -> Operation:
+    async def handle_request(self, request: str) -> Operation:
         op = Operation()
         if not request:
             return op
@@ -355,109 +352,18 @@ class TaskManager:
         return op
 
     async def process_cmd(self, op: Operation):
-        cmd = op.cmd.upper()
-        if cmd == 'PS':
-            op.data = self.tasks_get_info_list()
-            op.output = list(map(str, self.tasks_get_list()))
-            self.emit_lists()
-        elif cmd == 'INFO':
-            try:
-                task_id = int(op.args[0]) if len(op.args) > 0 else None
-                task_info = self.get_info(task_id)
-                op.data = task_info
-                op.output = str(task_info)
-            except (IndexError, ValueError) as exc:
-                op.output = str(exc)
-        elif cmd == 'MODIFY':
-            try:
-                task_id = int(op.args[0])
-                op.output = self.modify_task_data(task_id, op)
-            except (IndexError, ValueError) as exc:
-                op.output = str(exc)
-        elif cmd == 'PAUSE':
-            try:
-                task_id = int(op.args[0])
-                op.output = self.pause_task(task_id)
-            except (IndexError, ValueError) as exc:
-                op.output = str(exc)
-        elif cmd == 'RELOAD':
-            op.output = self.reload(op.args[0])
-        elif cmd == 'STATS':
-            stats = self.get_stats()
-            op.data = stats
-            op.output = str(stats)
-        elif cmd == 'KILL':
-            args = ''.join(op.args)
-            if args == 'all':
-                self.kill_all()
-            elif args.isdigit():
-                op.output = self.kill(int(args))
-            else:
-                op.output = 'Argument missing'
-        elif cmd == 'CLEAN':
-            self.clean()
-        elif cmd == 'GET':
-            try:
-                task_id = int(op.args[0]) if len(op.args) > 0 else None
-                num = int(op.args[1]) if len(op.args) > 1 else None
-                op.data = self.get_output(task_id, num=num)
-            except (IndexError, ValueError) as exc:
-                op.data = [{'ts': 0, 'taskId': 0, 'msg': str(exc)}]
-        elif cmd == 'CRON':
-            if 'rm' in op.kwargs:
-                op.output = self.cron_delete(int(op.kwargs['rm']))
-            elif 'pause' in op.kwargs:
-                op.output = self.cron_pause(int(op.kwargs['pause']))
-            elif 'modify' in op.kwargs and 'cron' in op.kwargs:
-                op.output = self.cron_modify(int(op.kwargs['modify']),
-                                             op.kwargs['cron'])
-            else:
-                res = list(map(lambda x: f'{x[0]}) {x[1]}', enumerate(self.cron_get_list())))
-                op.data = res
-                op.output = '\n'.join(res)
-        elif cmd == 'IFTTT':
-            if 'rm' in op.kwargs:
-                op.output = self.ifttt_delete(int(op.kwargs['rm']))
-            elif 'pause' in op.kwargs:
-                op.output = self.ifttt_pause(int(op.kwargs['pause']))
-            else:
-                res = list(map(lambda x: f'{x[0]}) {x[1]}', enumerate(self.ifttt_get_list())))
-                op.data = res
-                op.output = '\n'.join(res)
-        elif cmd == 'SAVEGAME':
-            event_bus.emit(Event.SAVEGAME)
-        elif cmd == 'MEMSTORE':
-            if 'keys' in op.args:
-                ret = memstore.get_keys()
-            elif 'get' in op.kwargs:
-                ret = memstore.get(op.kwargs['get'])
-            else:
-                ret = memstore.store
-            op.data = ret
-            if 'raw' in op.args:
-                op.output = str(ret)
-            else:
-                op.output = pprint.pformat(ret, indent=2, width=1)
-        elif cmd == 'SENDMAIL':
-            mail.send_mail('Hello World!')
-            op.output = 'Email sent'
-        elif cmd == 'QUIT':
-            op.output = 'Goodbye!'
-        elif cmd in (
-                'PING',
-                'BIN_LIVE',
-                'CRYPTO_ORDER',
-                'CRYPTO_PF',
-                'CRYPTO_STATS',
-                'CRYPTO_TICKER',
-                'CRYPTO_TSL',
-                'CMC_LATEST'):
-            self.start(op)
-        else:
-            op.output = 'Unknown command'
+        try:
+            command = CommandFactory.create_command(op)
+            await command.execute(self)
+        except ValueError as exc:
             op.resp_code = 'ERR'
+            op.output = str(exc)
+            raise exc
+        except Exception as exc:
+            op.resp_code = 'ERR'
+            op.output = f"Exception in command: {exc}"
 
-    def parse_args(self, line: str):  # pylint: disable=no-self-use
+    def parse_args(self, line: str):
         cmd_kwargs = {}
         cmd_args = shlex.split(line or '')
         for arg in cmd_args[:]:
@@ -468,14 +374,14 @@ class TaskManager:
         return cmd_args, cmd_kwargs
 
     def get_stats(self):
-        savegame_last_update = memstore.get('savegame_last_update')
-        if savegame_last_update:
-            savegame_last_update = savegame_last_update.isoformat()
+        memento_last_update = memstore.get('memento_last_update')
+        if memento_last_update:
+            memento_last_update = memento_last_update.isoformat()
         return {
             'version': VERSION,
             'start_time': self.start_time.isoformat(),
             'start_time_ts': get_timestamp(self.start_time),
-            'savegame_last_update': savegame_last_update,
+            'memento_last_update': memento_last_update,
             'uptime': str(datetime.now() - self.start_time),
             'uptime_ts': int((datetime.now() - self.start_time).total_seconds()),
         }

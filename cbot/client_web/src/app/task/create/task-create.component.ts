@@ -146,6 +146,15 @@ export class AppTaskCreateComponent implements OnInit {
         'ping',
         'savegame',
     ];
+    taskRunCmd = [
+        'bin_live',
+        'cmc_latest',
+        'crypto_order',
+        'crypto_stats',
+        'crypto_ticker',
+        'crypto_tsl',
+        'ping',
+    ];
 
     constructor(private streamService: StreamService) {
     }
@@ -180,6 +189,10 @@ export class AppTaskCreateComponent implements OnInit {
             cmd: this.modifyTask ? 'MODIFY' : this.form.controls['cmd'].value,
             args: this.modifyTask ? [this.refTask?.id] : args,
             kwargs: kwargs,
+        }
+        if (this.taskRunCmd.includes(payload.cmd)) {
+            payload.args = [payload.cmd, ...payload.args];
+            payload.cmd = 'RUN';
         }
         console.log('PAYLOAD', payload);
         this.streamService.send(payload);

@@ -40,7 +40,8 @@ class Shell(cmd.Cmd):
     prompt = '> '
 
     def __init__(self, client: Client):
-        cmd.Cmd.__init__(self)
+        super().__init__()
+        self.use_rawinput = True
         self.client = client
 
     def preloop(self):
@@ -70,32 +71,32 @@ class Shell(cmd.Cmd):
     def do_EOF(self, _line):  # pylint: disable=invalid-name,no-self-use
         return True
 
-    def do_ping(self, arg):
+    def subcmd_do_ping(self, arg):
         """
           - 25
           - interval=5
         """
-        self.call('PING', arg)
+        self.call('RUN PING', arg)
 
-    def complete_ping(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_ping(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'desc=', 'ifttt=', 'interval=']
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_crypto_pf(self, arg):
+    def subcmd_do_crypto_pf(self, arg):
         """
           - exchange=binance
           - symbol=
         """
-        self.call('CRYPTO_PF', arg)
+        self.call('RUN CRYPTO_PF', arg)
 
-    def complete_crypto_pf(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_crypto_pf(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'desc=', 'ifttt=', 'exchange=', 'symbol=']
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_crypto_order(self, arg):
-        self.call('CRYPTO_ORDER', arg)
+    def subcmd_do_crypto_order(self, arg):
+        self.call('RUN CRYPTO_ORDER', arg)
 
-    def complete_crypto_order(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_crypto_order(self, text, _line, _begidx, _endidx):
         k = [
             'buy',
             'cron=',
@@ -118,7 +119,7 @@ class Shell(cmd.Cmd):
         ]
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_crypto_tsl(self, arg):
+    def subcmd_do_crypto_tsl(self, arg):
         """
           TSL (Trailing Stop Loss)
           - aboveInitialPrice
@@ -140,9 +141,9 @@ class Shell(cmd.Cmd):
           - takeProfit=1000
           - takeProfitPct=2
         """
-        self.call('CRYPTO_TSL', arg)
+        self.call('RUN CRYPTO_TSL', arg)
 
-    def complete_crypto_tsl(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_crypto_tsl(self, text, _line, _begidx, _endidx):
         k = [
             'aboveInitialPrice',
             'aboveInitialPriceOffset=',
@@ -168,43 +169,44 @@ class Shell(cmd.Cmd):
         ]
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_crypto_stats(self, arg):
+    def subcmd_do_crypto_stats(self, arg):
         """
           - exchange=binance
           - limit=int
           - symbol=BTC/USDT
           - timeframe=1h
         """
-        self.call('CRYPTO_STATS', arg)
+        self.call('RUN CRYPTO_STATS', arg)
 
-    def complete_crypto_stats(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_crypto_stats(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'desc=', 'ifttt=', 'exchange=', 'limit=', 'symbol=', 'timeframe=']
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_crypto_ticker(self, arg):
+    def subcmd_do_crypto_ticker(self, arg):
         """
           - exchange=binance
           - symbol=pair1,pair2
         """
-        self.call('CRYPTO_TICKER', arg)
+        self.call('RUN CRYPTO_TICKER', arg)
 
-    def complete_crypto_ticker(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_crypto_ticker(self, text, _line, _begidx, _endidx):
+        # print(f'COMPLETE>{text}<EOL')
         k = ['cron=', 'desc=', 'ifttt=', 'exchange=', 'symbol=']
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_cmc_latest(self, arg):
+    def subcmd_do_cmc_latest(self, arg):
         """
           - num=25
           - quote=BTC
           - sortby=percent_change_1h
         """
-        self.call('CMC_LATEST', arg)
+        self.call('RUN CMC_LATEST', arg)
 
-    def complete_cmc_latest(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_cmc_latest(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'desc=', 'ifttt=', 'num=', 'quote=', 'sortby=']
         return list(filter(lambda x: x.startswith(text), k))
 
-    def do_bin_live(self, arg):
+    def subcmd_do_bin_live(self, arg):
         """
           - streams=klines,!ticker@arr
           - streamAllTickers
@@ -213,9 +215,9 @@ class Shell(cmd.Cmd):
           - symbolsTrackAdd
           - trackCmcLatest=true
         """
-        self.call('BIN_LIVE', arg)
+        self.call('RUN BIN_LIVE', arg)
 
-    def complete_bin_live(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def subcmd_complete_bin_live(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'desc=', 'ifttt=', 'streams=', 'streamAllTickers',
              'sortby=', 'symbol=', 'symbolsTrackAdd', 'trackCmcLatest=']
         return list(filter(lambda x: x.startswith(text), k))
@@ -225,6 +227,89 @@ class Shell(cmd.Cmd):
 
     def do_ls(self, arg):
         self.do_ps(arg)
+
+    def do_run(self, arg):
+        """Run a subcommand with optional arguments: run <subcmd> [args]"""
+        args = arg.split()
+        if not args:
+            print('Usage: run <subcmd> [args]')
+            return
+
+        subcmd = args[0]
+        subargs = args[1:]
+
+        # Dispatch to the appropriate subcommand handler
+        method_name = f'subcmd_do_{subcmd}'
+        method = getattr(self, method_name, None)
+        if callable(method):
+            method(subargs)
+        else:
+            print(f"Unknown subcommand: {subcmd}")
+
+    def complete_run(self, text, line, begidx, endidx):
+        """
+        Provides tab completion for the 'run' command.
+        - Suggests subcommands after 'run '.
+        - Delegates to subcommand's complete_<subcmd> method for argument completion.
+        """
+        # Split the input line into tokens using space as the delimiter
+        tokens = line.split(' ')
+
+        # Remove any empty tokens resulting from multiple spaces
+        tokens = [tok for tok in tokens if tok]
+
+        # No tokens yet, suggest subcommands
+        if len(tokens) == 0:
+            return list(self._get_subcommands())
+
+        # User has typed 'run' and possibly more
+        if tokens[0] != 'run':
+            return []
+
+        # If only 'run' is typed, suggest subcommands
+        if len(tokens) == 1:
+            return list(self._get_subcommands())
+
+        subcmd = tokens[1]
+
+        # If the user is typing the subcommand (e.g., 'run st<Tab>')
+        if len(tokens) == 2 and not line.endswith(' '):
+            return [cmd for cmd in self._get_subcommands() if cmd.startswith(text)]
+
+        # If the user has typed 'run subcmd' and is ready to type arguments
+        if len(tokens) >= 2:
+            # If the line ends with space, the user is about to type a new argument
+            if line.endswith(' '):
+                # Suggest all arguments for the subcommand
+                completer = getattr(self, f'subcmd_complete_{subcmd}', None)
+                if callable(completer):
+                    return completer('', None, None, None)
+                else:
+                    return []
+            else:
+                # The user is typing an argument; suggest based on the current text
+                completer = getattr(self, f'subcmd_complete_{subcmd}', None)
+                if callable(completer):
+                    # To prevent suggesting already used arguments
+                    used_args = set(tokens[2:])
+                    possible_args = completer('', None, None, None)
+                    # Filter out already used args
+                    available_args = [arg for arg in possible_args if arg not in used_args]
+                    return [arg for arg in available_args if arg.startswith(text)]
+                else:
+                    return []
+        return []
+
+    def _get_subcommands(self):
+        """Return a list of available subcommands for 'run'."""
+        _prefix = 'subcmd_do_'
+        _len = len(_prefix)
+        subcommands = [
+            method_name[_len:]
+            for method_name in dir(self)
+            if method_name.startswith(_prefix) and callable(getattr(self, method_name))
+        ]
+        return subcommands
 
     def do_reload(self, arg):
         """
@@ -300,7 +385,7 @@ class Shell(cmd.Cmd):
         """
         self.call('CRON', arg)
 
-    def complete_cron(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def complete_cron(self, text, _line, _begidx, _endidx):
         k = ['cron=', 'pause=', 'rm=', 'modify=']
         return list(filter(lambda x: x.startswith(text), k))
 
@@ -311,7 +396,7 @@ class Shell(cmd.Cmd):
         """
         self.call('IFTTT', arg)
 
-    def complete_ifttt(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def complete_ifttt(self, text, _line, _begidx, _endidx):
         k = ['pause=', 'rm=']
         return list(filter(lambda x: x.startswith(text), k))
 
@@ -326,7 +411,7 @@ class Shell(cmd.Cmd):
     def do_savegame(self, _arg):
         self.call('SAVEGAME', _arg)
 
-    def complete_memstore(self, text, _line, _begidx, _endidx):  # pylint: disable=R0201
+    def complete_memstore(self, text, _line, _begidx, _endidx):
         k = ['get=', 'keys', 'raw']
         return list(filter(lambda x: x.startswith(text), k))
 

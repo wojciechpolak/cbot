@@ -56,7 +56,7 @@ class Server:
             request = await self.read_request(client)
             is_done = False
             if request:
-                op = await task_manager.process_request(request)
+                op = await task_manager.handle_request(request)
                 payload = json.dumps(op.to_response(), default=str)
                 await self.send_response(client, payload)
                 if op.cmd == 'QUIT':

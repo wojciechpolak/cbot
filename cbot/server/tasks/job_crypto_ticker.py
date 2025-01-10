@@ -1,7 +1,7 @@
 """
 # job_crypto_ticker.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -22,6 +22,7 @@ from cbot.server.exchange import ExchangeError
 from cbot.server.logger import logger
 from cbot.server.memstore import memstore
 from cbot.server.task import Task
+from cbot.server.tasks.base import JobStrategy
 from cbot.server.tasks.data import TaskData
 
 
@@ -50,33 +51,34 @@ class Data(TaskData):
                 logger.error('Invalid call argument: %s', k)
 
 
-async def job_crypto_ticker(task: Task):
-    printer = task.printer
-    printer(f'Launching task #{task.id} {task.name}')
+class JobCryptoTicker(JobStrategy):
+    async def run(self, task: Task):
+        printer = task.printer
+        printer(f'Launching task #{task.id} {task.name}')
 
-    if task.data is None:
-        task.data = Data()
-        task.data.map_options(task.op.args, task.op.kwargs)
-    data = task.data
+        if task.data is None:
+            task.data = Data()
+            task.data.map_options(task.op.args, task.op.kwargs)
+        data = task.data
 
-    try:
-        exch = await exchange.get_or_create(data.exchange)
-        data.exchange = exch.exchange_id
-    except ExchangeError as exc:
-        task.printer_error('ExchangeError:', exc)
+        try:
+            exch = await exchange.get_or_create(data.exchange)
+            data.exchange = exch.exchange_id
+        except ExchangeError as exc:
+            task.printer_error('ExchangeError:', exc)
+            task.set_finished()
+            return -1
+
+        if ',' in data.symbol:
+            task.printer_warning('job_crypto_ticker: Using multiple tickers (weight=40)')
+            symbols = data.symbol.split(',')
+            tickers = await exch.instance.fetch_tickers(symbols)
+            for key in tickers:
+                memstore.add_ticker(data.exchange, tickers[key])
+                logger.debug('job_crypto_ticker = %s', tickers[key])
+        else:
+            ticker = await exch.instance.fetch_ticker(data.symbol)
+            memstore.add_ticker(data.exchange, ticker)
+            logger.debug('job_crypto_ticker = %s', ticker)
+
         task.set_finished()
-        return -1
-
-    if ',' in data.symbol:
-        task.printer_warning('job_crypto_ticker: Using multiple tickers (weight=40)')
-        symbols = data.symbol.split(',')
-        tickers = await exch.instance.fetch_tickers(symbols)
-        for key in tickers:
-            memstore.add_ticker(data.exchange, tickers[key])
-            logger.debug('job_crypto_ticker = %s', tickers[key])
-    else:
-        ticker = await exch.instance.fetch_ticker(data.symbol)
-        memstore.add_ticker(data.exchange, ticker)
-        logger.debug('job_crypto_ticker = %s', ticker)
-
-    task.set_finished()

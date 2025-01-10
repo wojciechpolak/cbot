@@ -1,7 +1,7 @@
 """
 # task.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -20,6 +20,7 @@
 import time
 import asyncio
 import datetime
+from abc import ABC, abstractmethod
 from contextlib import suppress
 from typing import Optional, Callable, Dict, Any
 
@@ -37,11 +38,10 @@ async def catch(awaitable):
         logger.exception('Exception')
 
 
-class TaskInfo:
+class TaskMemento:
     id: int = 0
     name: str = ''
-    is_finished: bool = False
-    is_paused: bool = False
+    state_name: str = ''
     output: []
     op: Operation = None
     start_time = datetime.datetime.now()
@@ -58,17 +58,16 @@ class Task:
     MAX_OUTPUT_LINES = 1000
 
     def __init__(self, op: Operation, func: Callable,
-                 name: str = '', task_info: TaskInfo = None):
+                 name: str = '', task_memento: TaskMemento = None):
         self.id = 0
         self.name = name
-        self.is_finished = False
-        self.is_paused = False
+        self.state: TaskState = RunningState()
         self.output = []
         self.op = op
         self.start_time = datetime.datetime.now()
         self.data: Optional[TaskData] = None
-        if task_info:
-            self.from_savegame(task_info)
+        if task_memento:
+            self.restore_from_memento(task_memento)
         if not self.is_finished:
             self.task = asyncio.create_task(catch(func(self)))
 
@@ -87,11 +86,20 @@ class Task:
     def __str__(self):
         return self.__repr__()
 
+    @property
+    def is_paused(self) -> bool:
+        return isinstance(self.state, PausedState)
+
+    @property
+    def is_finished(self) -> bool:
+        return isinstance(self.state, FinishedState)
+
     def to_info_dict(self, full=False) -> Any:
         res = {
             'id': self.id,
             'name': self.name,
             'start_time': int(datetime.datetime.timestamp(self.start_time)),
+            'state': self.state.__class__.__name__,
             'is_paused': self.is_paused,
             'is_finished': self.is_finished,
             'desc': self.op.kwargs.get('desc'),
@@ -104,25 +112,23 @@ class Task:
             })
         return res
 
-    def to_savegame(self) -> TaskInfo:
-        info = TaskInfo()
-        info.id = self.id
-        info.name = self.name
-        info.is_finished = self.is_finished
-        info.is_paused = self.is_paused
-        info.output = self.output
-        info.op = self.op
-        info.data = self.data
-        info.start_time = self.start_time
-        return info
+    def create_memento(self) -> TaskMemento:
+        memento = TaskMemento()
+        memento.id = self.id
+        memento.name = self.name
+        memento.state_name = self.state.__class__.__name__
+        memento.output = self.output
+        memento.op = self.op
+        memento.data = self.data
+        memento.start_time = self.start_time
+        return memento
 
-    def from_savegame(self, info: TaskInfo):
-        self.id = info.id
-        self.is_finished = info.is_finished
-        self.is_paused = info.is_paused
-        self.output = info.output
-        self.start_time = info.start_time
-        self.data = info.data
+    def restore_from_memento(self, memento: TaskMemento):
+        self.id = memento.id
+        self.state = STATE_MAP.get(memento.state_name, FinishedState)()
+        self.output = memento.output
+        self.start_time = memento.start_time
+        self.data = memento.data
 
     def _printer(self, *args) -> str:
         if len(self.output) >= self.MAX_OUTPUT_LINES:
@@ -172,15 +178,10 @@ class Task:
             self.set_finished()
 
     def set_finished(self):
-        self.is_finished = True
-        event_bus.emit(Event.TASK_FINISHED, {
-            'taskId': self.id
-        })
+        self.state.finish(self)
 
     def pause(self) -> str:
-        self.is_paused = not self.is_paused
-        logger.info('%s task #%d',
-                    'Pausing' if self.is_paused else 'Unpausing', self.id)
+        self.state.pause(self)
         return 'OK'
 
     def modify_data(self, kwargs: Dict) -> str:
@@ -191,3 +192,57 @@ class Task:
             'taskId': self.id
         })
         return 'OK'
+
+
+class TaskState(ABC):
+    """
+    Abstract base for Task state.
+    Each state decides what happens when we call pause() or finish().
+    """
+    @abstractmethod
+    def pause(self, task: Task):
+        pass
+
+    @abstractmethod
+    def finish(self, task: Task):
+        pass
+
+
+class RunningState(TaskState):
+    def pause(self, task: Task):
+        task.state = PausedState()
+        logger.info('Pausing task #%d', task.id)
+
+    def finish(self, task: Task):
+        task.state = FinishedState()
+        event_bus.emit(Event.TASK_FINISHED, {
+            'taskId': task.id
+        })
+
+
+class PausedState(TaskState):
+    def pause(self, task: Task):
+        # Paused -> Running
+        task.state = RunningState()
+        logger.info('Unpausing task #%d', task.id)
+
+    def finish(self, task: Task):
+        task.state = FinishedState()
+        event_bus.emit(Event.TASK_FINISHED, {
+            'taskId': task.id
+        })
+
+
+class FinishedState(TaskState):
+    def pause(self, task: Task):
+        logger.debug('Task #%d is finished; cannot pause.', task.id)
+
+    def finish(self, task: Task):
+        logger.debug('Task #%d is already finished.', task.id)
+
+
+STATE_MAP = {
+    'RunningState': RunningState,
+    'PausedState': PausedState,
+    'FinishedState': FinishedState,
+}

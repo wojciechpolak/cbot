@@ -92,7 +92,7 @@ class Server:
             async for request in ws:
                 is_done = False
                 if request:
-                    op = await task_manager.process_request(request)
+                    op = await task_manager.handle_request(request)
                     payload = json.dumps(op.to_stream_response(), default=str)
                     await ws.send(payload)
                     if op.cmd == 'QUIT':

@@ -1,7 +1,7 @@
 """
 # test_job_crypto_tsl.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -27,6 +27,7 @@ from cbot.server.tasks.job_crypto_tsl import Data
 class Test(TestCase):
 
     def setUp(self) -> None:
+        self.job_crypto_tsl = job_crypto_tsl.JobCryptoTsl()
         self.ticker = {}
 
     def test_calc_long_tsl_1_1(self):
@@ -34,7 +35,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '40.10',
@@ -47,7 +48,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -59,7 +60,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '39.95',
@@ -70,7 +71,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -82,7 +83,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '39.95',
@@ -94,7 +95,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -107,7 +108,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10000.00')
         data.limitPrice = Decimal('10500.00')
         data.stopOffsetPricePct = Decimal('5.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10000',
             '10500',
@@ -119,7 +120,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -134,7 +135,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10000.00')
         data.limitPrice = Decimal('10500.00')
         data.stopOffsetPricePct = Decimal('5.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10000',
             '10500',
@@ -146,7 +147,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -160,7 +161,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10500.00')
         data.limitPrice = Decimal('11000.00')
         data.stopOffsetPricePct = Decimal('2.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10500',
             '11500',
@@ -171,7 +172,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -184,7 +185,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('1000.00')
         data.stopOffsetPricePct = Decimal('5.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '1000', '990', '995', '1005', '1006', '1007', '1008', '1009',
             '1100', '1090', '1095', '1105', '1106', '1107', '1108', '1109',
@@ -204,7 +205,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -218,11 +219,11 @@ class Test(TestCase):
         data.initialPrice = Decimal('1000.00')
         data.stopOffsetPricePct = Decimal('5.0')
         data.reduceStopOffsetPriceBy = Decimal('0.5')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
 
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -239,8 +240,8 @@ class Test(TestCase):
         data.aboveInitialPrice = True
         # data.aboveInitialPriceOffsetPct = Decimal('10.0')
         data.takeProfitPct = Decimal('10.0')
-        job_crypto_tsl.calc_above_offset_price(data)
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_above_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '1000', '1100', '1200',
             '1101',  # takeProfit >= 1100
@@ -252,7 +253,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_1(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -264,7 +265,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '40.10',
@@ -277,7 +278,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -289,7 +290,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '39.95',
@@ -300,7 +301,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -312,7 +313,7 @@ class Test(TestCase):
         data.quantity = 1
         data.initialPrice = Decimal('40.00')
         data.stopOffsetPrice = Decimal('0.10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '40.00',
             '39.95',
@@ -323,7 +324,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -336,7 +337,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10000.00')
         data.limitPrice = Decimal('10500.00')
         data.stopOffsetPricePct = Decimal('5.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10000',
             '10500',
@@ -348,7 +349,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -363,7 +364,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10000.00')
         data.limitPrice = Decimal('10500.00')
         data.stopOffsetPricePct = Decimal('5.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10000',
             '10500',
@@ -375,7 +376,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -389,7 +390,7 @@ class Test(TestCase):
         data.initialPrice = Decimal('10500.00')
         data.limitPrice = Decimal('11000.00')
         data.stopOffsetPricePct = Decimal('2.0')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '10500',
             '11500',
@@ -400,7 +401,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -413,7 +414,7 @@ class Test(TestCase):
         data.quantity = 10
         data.initialPrice = Decimal('1000')
         data.stopOffsetPricePct = Decimal('10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '1000',
             '5000',
@@ -423,7 +424,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -435,7 +436,7 @@ class Test(TestCase):
         data.quantity = 10
         data.initialPrice = Decimal('1000')
         data.stopOffsetPricePct = Decimal('10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '1000',
             '950',
@@ -445,7 +446,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break
@@ -457,7 +458,7 @@ class Test(TestCase):
         data.quantity = 10
         data.initialPrice = Decimal('1000')
         data.stopOffsetPricePct = Decimal('10')
-        job_crypto_tsl.calc_stop_offset_price(data)
+        self.job_crypto_tsl.calc_stop_offset_price(data)
         last_price = [
             '1000',
             '950',
@@ -467,7 +468,7 @@ class Test(TestCase):
         ]
         for lp in last_price:
             self.ticker['last'] = lp
-            is_done = job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
+            is_done = self.job_crypto_tsl.calc_long_tsl_2(data, self.ticker)
             print(data)
             if is_done:
                 break

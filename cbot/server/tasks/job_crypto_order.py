@@ -1,7 +1,7 @@
 """
 # job_crypto_order.py
 #
-# CBot Copyright (C) 2022 Wojciech Polak
+# CBot Copyright (C) 2022-2025 Wojciech Polak
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -27,6 +27,7 @@ from cbot.server.exchange import ExchangeError
 from cbot.server.logger import logger
 from cbot.server.mail import send_mail
 from cbot.server.task import Task
+from cbot.server.tasks.base import JobStrategy
 from cbot.server.tasks.data import TaskData
 from cbot.server.utils import parse_bool
 
@@ -117,97 +118,98 @@ class Data(TaskData):
                 logger.error('Invalid call argument: %s', k)
 
 
-async def job_crypto_order(task: Task):
-    printer = task.printer
-    printer_error = task.printer_error
-    printer(f'Launching task #{task.id} {task.name}')
+class JobCryptoOrder(JobStrategy):
+    async def run(self, task: Task):
+        printer = task.printer
+        printer_error = task.printer_error
+        printer(f'Launching task #{task.id} {task.name}')
 
-    if task.data is None:
-        task.data = Data()
-        task.data.map_options(task.op.args, task.op.kwargs)
-    data = task.data
+        if task.data is None:
+            task.data = Data()
+            task.data.map_options(task.op.args, task.op.kwargs)
+        data = task.data
 
-    if not data.order_side:
-        printer_error('Order side BUY or SELL is required!')
-        task.set_finished()
-        return -1
-
-    if data.order_type in (ORDER_TYPE_STOP_LOSS,
-                           ORDER_TYPE_STOP_LOSS_LIMIT,
-                           ORDER_TYPE_TAKE_PROFIT,
-                           ORDER_TYPE_TAKE_PROFIT_LIMIT) and not data.stopPrice:
-        printer_error('stopPrice is required for this order type')
-        task.set_finished()
-        return -1
-
-    if data.order_type in (ORDER_TYPE_LIMIT,
-                           ORDER_TYPE_STOP_LOSS_LIMIT,
-                           ORDER_TYPE_TAKE_PROFIT_LIMIT) and not data.price:
-        printer_error('price is required for this order type')
-        task.set_finished()
-        return -1
-
-    try:
-        exch = await exchange.get_or_create(data.exchange)
-        data.exchange = exch.exchange_id
-    except ExchangeError as exc:
-        task.printer_error('ExchangeError:', exc)
-        task.set_finished()
-        return -1
-
-    if data.simulate:
-        printer('Simulate = Yes')
-
-    printer('Exchange =', data.exchange)
-    printer('Symbol =', data.symbol)
-    printer('Order side =', data.order_side)
-    printer('Order type =', data.order_type)
-
-    if data.price:
-        printer('Price =', data.price)
-    if data.stopPrice:
-        printer('StopPrice =', data.stopPrice)
-    if data.quoteOrderQty:
-        printer('QuoteOrderQty =', data.quoteOrderQty)
-
-    if not data.order_completed:
-        try:
-            amount = data.quantity
-            price = None
-            params = {}
-            if data.simulate:
-                params['test'] = data.simulate
-            if data.order_type not in (ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET):
-                params['type'] = data.order_type
-            if data.order_type in (ORDER_TYPE_LIMIT,
-                                   ORDER_TYPE_STOP_LOSS_LIMIT,
-                                   ORDER_TYPE_TAKE_PROFIT_LIMIT):
-                price = data.price
-            if data.stopPrice:
-                params['stopPrice'] = float(data.stopPrice)
-            if data.quoteOrderQty:
-                amount = None
-                price = None
-                params['quoteOrderQty'] = float(data.quoteOrderQty)
-
-            res_order_status = await exch.instance.create_order(
-                data.symbol, data.order_type, data.order_side, amount, price, params)
-
-            data.order_completed = True
-            data.order_status = res_order_status
-            data.price = Decimal(str(res_order_status.get('price') or 1))
-            data.quantity = Decimal(str(res_order_status.get('amount') or 0))
-
-            et = printer(f'Order status: {pprint.pformat(res_order_status, indent=2, width=1)}') + '\n'
-            send_mail(body=et)
-        except Exception as exc:
-            task.printer_error('Order error:', exc)
-            task.printer_error('Limits:', exch.instance.markets[data.symbol]['limits'])
+        if not data.order_side:
+            printer_error('Order side BUY or SELL is required!')
             task.set_finished()
-            return 1
+            return -1
 
-    printer('Quantity =', data.quantity)
-    printer('Price =', data.price)
+        if data.order_type in (ORDER_TYPE_STOP_LOSS,
+                               ORDER_TYPE_STOP_LOSS_LIMIT,
+                               ORDER_TYPE_TAKE_PROFIT,
+                               ORDER_TYPE_TAKE_PROFIT_LIMIT) and not data.stopPrice:
+            printer_error('stopPrice is required for this order type')
+            task.set_finished()
+            return -1
 
-    event_bus.emit(Event.CRYPTO_ORDER, data.__dict__)
-    task.set_finished()
+        if data.order_type in (ORDER_TYPE_LIMIT,
+                               ORDER_TYPE_STOP_LOSS_LIMIT,
+                               ORDER_TYPE_TAKE_PROFIT_LIMIT) and not data.price:
+            printer_error('price is required for this order type')
+            task.set_finished()
+            return -1
+
+        try:
+            exch = await exchange.get_or_create(data.exchange)
+            data.exchange = exch.exchange_id
+        except ExchangeError as exc:
+            task.printer_error('ExchangeError:', exc)
+            task.set_finished()
+            return -1
+
+        if data.simulate:
+            printer('Simulate = Yes')
+
+        printer('Exchange =', data.exchange)
+        printer('Symbol =', data.symbol)
+        printer('Order side =', data.order_side)
+        printer('Order type =', data.order_type)
+
+        if data.price:
+            printer('Price =', data.price)
+        if data.stopPrice:
+            printer('StopPrice =', data.stopPrice)
+        if data.quoteOrderQty:
+            printer('QuoteOrderQty =', data.quoteOrderQty)
+
+        if not data.order_completed:
+            try:
+                amount = data.quantity
+                price = None
+                params = {}
+                if data.simulate:
+                    params['test'] = data.simulate
+                if data.order_type not in (ORDER_TYPE_LIMIT, ORDER_TYPE_MARKET):
+                    params['type'] = data.order_type
+                if data.order_type in (ORDER_TYPE_LIMIT,
+                                       ORDER_TYPE_STOP_LOSS_LIMIT,
+                                       ORDER_TYPE_TAKE_PROFIT_LIMIT):
+                    price = data.price
+                if data.stopPrice:
+                    params['stopPrice'] = float(data.stopPrice)
+                if data.quoteOrderQty:
+                    amount = None
+                    price = None
+                    params['quoteOrderQty'] = float(data.quoteOrderQty)
+
+                res_order_status = await exch.instance.create_order(
+                    data.symbol, data.order_type, data.order_side, amount, price, params)
+
+                data.order_completed = True
+                data.order_status = res_order_status
+                data.price = Decimal(str(res_order_status.get('price') or 1))
+                data.quantity = Decimal(str(res_order_status.get('amount') or 0))
+
+                et = printer(f'Order status: {pprint.pformat(res_order_status, indent=2, width=1)}') + '\n'
+                send_mail(body=et)
+            except Exception as exc:
+                task.printer_error('Order error:', exc)
+                task.printer_error('Limits:', exch.instance.markets[data.symbol]['limits'])
+                task.set_finished()
+                return 1
+
+        printer('Quantity =', data.quantity)
+        printer('Price =', data.price)
+
+        event_bus.emit(Event.CRYPTO_ORDER, data.__dict__)
+        task.set_finished()
