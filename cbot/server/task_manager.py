@@ -17,68 +17,39 @@
 # with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import asyncio
+
 import json
 import shlex
 from datetime import datetime
 from importlib import import_module, reload
-from typing import Dict, List, Any
-
-import pycron
+from typing import List, Any
 
 from cbot import VERSION
 from cbot.server.commands.factory import CommandFactory
-from cbot.server.memstore import memstore
+from cbot.server.cron import CronManager
 from cbot.server.event_bus import event_bus, Event
+from cbot.server.ifttt import IftttManager
 from cbot.server.logger import logger
+from cbot.server.memstore import memstore
 from cbot.server.operation import Operation
-from cbot.server.periodic import PeriodicTaskRunner, PeriodicRunStatus
 from cbot.server.task import Task, TaskMemento
 from cbot.server.tasks.factory import JobFactory
 from cbot.server.utils import get_timestamp
 
-RESP_OK = 'OK'
-RESP_ERR = 'ERR'
-
-
-class CronEntity:
-    schedule: str
-    op: Operation
-    is_paused: bool = False
-
-    def __init__(self, schedule: str, op: Operation, is_paused: bool = False):
-        self.schedule = schedule
-        self.op = op
-        self.is_paused = is_paused
-
-    def __str__(self):
-        return f'{self.schedule} {self.op}{" (paused)" if self.is_paused else ""}'
-
-
-class IftttEntity:
-    condition: str
-    op: Operation
-    is_paused: bool = False
-
-    def __init__(self, condition: str, op: Operation, is_paused: bool = False):
-        self.condition = condition
-        self.op = op
-        self.is_paused = is_paused
-
-    def __str__(self):
-        return f'{self.condition} {self.op}{" (paused)" if self.is_paused else ""}'
-
 
 class TaskManager:
+
+    RESP_OK = 'OK'
+    RESP_ERR = 'ERR'
+
     def __init__(self):
         self.counter = 0
-        self.scheduler_job = None
         self.task_list: List[Task] = []
-        self.cron_list: List[CronEntity] = []
-        self.ifttt_list: List[IftttEntity] = []
+        self.cron_manager = CronManager(self)
+        self.ifttt_manager = IftttManager(self)
         self.start_time = datetime.now()
 
-        event_bus.add_listener(Event.TICKER_UPDATE, self.ifttt_scan)
+        event_bus.add_listener(Event.TICKER_UPDATE, self.ifttt_manager.scan)
         event_bus.add_listener(Event.TASK_FINISHED, self.catch_task_finished)
 
     def add(self, task: Task):
@@ -90,12 +61,12 @@ class TaskManager:
         if 'ifttt' in op.kwargs:
             conditions = op.kwargs['ifttt']
             del op.kwargs['ifttt']
-            self.ifttt_add(conditions, op)
+            self.ifttt_manager.add(conditions, op)
             return
         if 'cron' in op.kwargs:
             cron_schedule = op.kwargs['cron']
             del op.kwargs['cron']
-            self.cron_add(cron_schedule, op)
+            self.cron_manager.add(cron_schedule, op)
             return
         job_strategy = JobFactory.create_job(op.cmd)
         task = Task(op, job_strategy.run, name=op.cmd)
@@ -104,8 +75,8 @@ class TaskManager:
 
     def get_all_lists(self):
         return {
-            'cron_list': self.cron_list,
-            'ifttt_list': self.ifttt_list,
+            'cron_list': self.cron_manager.cron_list,
+            'ifttt_list': self.ifttt_manager.ifttt_list,
             'tasks': self.tasks_get_info_list(),
         }
 
@@ -118,94 +89,13 @@ class TaskManager:
     def tasks_get_info_list(self):
         return [x.to_info_dict() for x in self.task_list]
 
-    def cron_get_list(self):
-        return self.cron_list
-
-    def cron_add(self, schedule: str, op: Operation):
-        self.cron_list.append(CronEntity(schedule, op))
-        self.emit_lists()
-
-    def cron_modify(self, position: int, schedule: str, is_paused: bool = False):
-        try:
-            op = self.cron_list[position].op
-            self.cron_list[position] = CronEntity(schedule, op, is_paused)
-            return RESP_OK
-        except IndexError as exc:
-            return str(exc)
-
-    def cron_pause(self, position: int):
-        try:
-            self.cron_list[position].is_paused = not self.cron_list[position].is_paused
-            self.emit_lists()
-            return RESP_OK
-        except IndexError as exc:
-            return str(exc)
-
-    def cron_delete(self, position: int, delete_all: bool = False) -> str:
-        if delete_all:
-            self.cron_list = []
-            self.emit_lists()
-            return RESP_OK
-        try:
-            del self.cron_list[position]
-            self.emit_lists()
-            return RESP_OK
-        except IndexError as exc:
-            return str(exc)
-
-    def ifttt_get_list(self):
-        return self.ifttt_list
-
-    def ifttt_add(self, conditions: str, op: Operation):
-        for cond in conditions.split(';'):
-            cond = cond.strip()
-            self.ifttt_list.append(IftttEntity(cond, op))
-        self.emit_lists()
-
-    def ifttt_pause(self, position: int):
-        try:
-            self.ifttt_list[position].is_paused = not self.ifttt_list[position].is_paused
-            self.emit_lists()
-            return RESP_OK
-        except IndexError as exc:
-            return str(exc)
-
-    def ifttt_delete(self, position: int, delete_all: bool = False) -> str:
-        if delete_all:
-            self.ifttt_list = []
-            self.emit_lists()
-            return RESP_OK
-        try:
-            del self.ifttt_list[position]
-            self.emit_lists()
-            return RESP_OK
-        except IndexError as exc:
-            return str(exc)
-
-    async def ifttt_scan(self, tickers: Dict):
-        for entry in self.ifttt_list[:]:
-            if entry.is_paused:
-                continue
-            condition = entry.condition
-            op = entry.op
-            try:
-                if eval(condition, {}, tickers):  # pylint: disable=eval-used
-                    logger.info('Executing ifttt job (%s): %s', condition, op)
-                    self.start(op)
-                    self.ifttt_list.remove(entry)  # run only once
-                else:
-                    logger.debug('IFTTT no match: %s', condition)
-            except Exception:
-                self.ifttt_list.remove(entry)  # run only once
-                logger.exception('IFTTT eval (%s)', condition)
-
     def kill(self, task_id: int) -> str:
         """Kills a single task"""
         t: Task = next(filter(lambda x: x.id == task_id, self.task_list), None)
         if t:
             t.kill()
             self.emit_lists()
-            return RESP_OK
+            return self.RESP_OK
         return 'kill: unknown task id #%d' % task_id
 
     def kill_all(self):
@@ -274,36 +164,14 @@ class TaskManager:
     async def catch_task_finished(self, _task_id: int):
         self.emit_lists()
 
-    async def scheduler_start(self):
-        self.scheduler_job = PeriodicTaskRunner(self.scheduler_runner, interval=60)
-        await self.scheduler_job.start()
-        try:
-            while self.scheduler_job.is_running:
-                await asyncio.sleep(1)
-        finally:
-            await self.scheduler_job.stop()
-
-    def scheduler_stop(self):
-        self.scheduler_job.stop()
-
-    async def scheduler_runner(self):
-        for cron_entry in self.cron_list:
-            if cron_entry.is_paused:
-                continue
-            if pycron.is_now(cron_entry.schedule):
-                logger.info('Executing cron job (%s): %s',
-                            cron_entry.schedule, cron_entry.op.cmd)
-                self.start(cron_entry.op)
-        return PeriodicRunStatus.CONTINUE
-
     def savegame(self):
         event_bus.emit(Event.SAVEGAME)
 
     def create_memento(self):
         data = {
             'counter': self.counter,
-            'cron_list': self.cron_list,
-            'ifttt_list': self.ifttt_list,
+            'cron_list': self.cron_manager.cron_list,
+            'ifttt_list': self.ifttt_manager.ifttt_list,
             'tasks': [x.create_memento() for x in self.task_list],
         }
         logger.debug('task_manager::create_memento: %s', data)
@@ -312,8 +180,8 @@ class TaskManager:
     def restore_from_memento(self, pick_data):
         logger.debug('task_manager::restore_from_memento: %s', pick_data)
         self.counter = pick_data['counter']
-        self.cron_list = pick_data.get('cron_list', [])
-        self.ifttt_list = pick_data.get('ifttt_list', [])
+        self.cron_manager.cron_list = pick_data.get('cron_list', [])
+        self.ifttt_manager.ifttt_list = pick_data.get('ifttt_list', [])
 
         task_memento: TaskMemento
         for task_memento in pick_data['tasks']:

@@ -33,10 +33,11 @@ class IftttCommand(Command):
     async def execute(self, manager: TaskManager):
         op = self.operation
         if 'rm' in op.kwargs:
-            op.output = manager.ifttt_delete(int(op.kwargs['rm']))
+            op.output = manager.ifttt_manager.delete(int(op.kwargs['rm']))
         elif 'pause' in op.kwargs:
-            op.output = manager.ifttt_pause(int(op.kwargs['pause']))
+            op.output = manager.ifttt_manager.pause(int(op.kwargs['pause']))
         else:
-            res = list(map(lambda x: f'{x[0]}) {x[1]}', enumerate(manager.ifttt_get_list())))
+            res = list(map(lambda x: f'{x[0]}) {x[1]}',
+                           enumerate(manager.ifttt_manager.get_list())))
             op.data = res
             op.output = '\n'.join(res)

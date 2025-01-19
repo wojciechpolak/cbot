@@ -33,13 +33,14 @@ class CronCommand(Command):
     async def execute(self, manager: TaskManager):
         op = self.operation
         if 'rm' in op.kwargs:
-            op.output = manager.cron_delete(int(op.kwargs['rm']))
+            op.output = manager.cron_manager.delete(int(op.kwargs['rm']))
         elif 'pause' in op.kwargs:
-            op.output = manager.cron_pause(int(op.kwargs['pause']))
+            op.output = manager.cron_manager.pause(int(op.kwargs['pause']))
         elif 'modify' in op.kwargs and 'cron' in op.kwargs:
-            op.output = manager.cron_modify(int(op.kwargs['modify']),
-                                            op.kwargs['cron'])
+            op.output = manager.cron_manager.modify(int(op.kwargs['modify']),
+                                                    op.kwargs['cron'])
         else:
-            res = list(map(lambda x: f'{x[0]}) {x[1]}', enumerate(manager.cron_get_list())))
+            res = list(map(lambda x: f'{x[0]}) {x[1]}',
+                           enumerate(manager.cron_manager.get_list())))
             op.data = res
             op.output = '\n'.join(res)

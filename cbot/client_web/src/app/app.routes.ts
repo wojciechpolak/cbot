@@ -1,7 +1,7 @@
 /**
- * app-routing.module
+ * app.routes
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,15 +17,6 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
-const routes: Routes = [];
-
-@NgModule({
-    imports: [RouterModule.forRoot(routes, {
-        useHash: false
-    })],
-    exports: [RouterModule]
-})
-export class AppRoutingModule {}
+export const routes: Routes = [];

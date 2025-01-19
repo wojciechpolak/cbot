@@ -164,7 +164,7 @@ def main():
         asyncio.ensure_future(server.run(), loop=loop)
         asyncio.ensure_future(ws_server.run(), loop=loop)
         asyncio.ensure_future(load_data(), loop=loop)
-        asyncio.ensure_future(task_manager.scheduler_start(), loop=loop)
+        asyncio.ensure_future(task_manager.cron_manager.scheduler_start(), loop=loop)
 
         try:
             loop.run_forever()

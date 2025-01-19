@@ -56,7 +56,7 @@ class Shell(cmd.Cmd):
     def call(self, name, arg):
         raw_input = name
         if arg:
-            raw_input += ' ' + arg
+            raw_input += ' ' + (' '.join(arg) if type(arg) is list else arg)
         res = self.client.call(raw_input=raw_input)
         if 'output' in res:
             if isinstance(res['output'], list):
