@@ -1,7 +1,7 @@
 /**
  * stream.service
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -39,11 +39,91 @@ export enum StreamType {
     TICKER_UPDATE = 'TICKER_UPDATE',
 }
 
-export interface StreamEvent {
-    type: StreamType,
-    taskId?: number;
-    data: any;
+export interface StreamResult {
+    type: StreamType.RESULT;
+    data: {
+        cmd: string;
+        data: {
+            taskId: number;
+            msg: string;
+        }[];
+    };
 }
+
+export interface StreamLogger {
+    type: StreamType.LOGGER;
+    taskId: number;
+    data: string;
+}
+
+export interface StreamTaskInfo {
+    type: StreamType.TASK_INFO;
+    taskId: number;
+    data: {
+        info: string;
+    }
+}
+
+export interface StreamTaskManager {
+    type: StreamType.TASK_MANAGER;
+    data: {
+        tasks: Task[];
+    }
+}
+
+export interface StreamCloneTask {
+    type: StreamType.CLONE_TASK;
+    data: Task;
+}
+
+export interface StreamModifyTask {
+    type: StreamType.MODIFY_TASK;
+    data: Task;
+}
+
+export interface StreamCryptoTslUpdate {
+    type: StreamType.CRYPTO_TSL_UPDATE;
+    taskId: number;
+    data: string;
+}
+
+export interface BinLive {
+    s: string;
+    '1m': string;
+    '3m': string;
+    '5m': string;
+    '10m': string;
+    '15m': string;
+}
+
+export interface StreamBinLiveUpdate {
+    type: StreamType.BIN_LIVE_UPDATE;
+    data: BinLive[];
+}
+
+export interface BinLiveTicker {
+    s: string;
+    c: string;
+    P: string;
+}
+
+export interface StreamTickers {
+    type: StreamType.STREAM_TICKERS;
+    data: BinLiveTicker[];
+}
+
+export type StreamEvent =
+    StreamBinLiveUpdate |
+    StreamCloneTask |
+    StreamCryptoTslUpdate |
+    StreamLogger |
+    StreamModifyTask |
+    StreamResult |
+    StreamTaskInfo |
+    StreamTaskManager |
+    StreamTickers;
+
+type AllowedStreamTypes = StreamEvent['type'];
 
 @Injectable({
     providedIn: 'root'
@@ -66,7 +146,7 @@ export class StreamService {
         this.listenToOnlineStatus();
     }
 
-    enable(onReady: Function = () => {}) {
+    enable(onReady: () => void = () => {}) {
         this.ws = new WebSocket(this.endpoint);
         this.ws.onopen = () => {
             this.isConnected = true;
@@ -79,7 +159,7 @@ export class StreamService {
             this.isConnected = false;
             if (event.code !== 1000 && this.isOnline) {
                 setTimeout(() => {
-                    let ws2 = new WebSocket(this.endpoint);
+                    const ws2 = new WebSocket(this.endpoint);
                     ws2.onopen = this.ws.onopen;
                     ws2.onmessage = this.ws.onmessage;
                     ws2.onclose = this.ws.onclose;
@@ -106,12 +186,12 @@ export class StreamService {
         });
     }
 
-    send(data: any) {
-        let payload = JSON.stringify(data);
+    send(data: unknown) {
+        const payload = JSON.stringify(data);
         this.ws.send(payload);
     }
 
-    callCmd(cmd: string, args: string[] = [], kwargs: any = {}) {
+    callCmd(cmd: string, args: string[] = [], kwargs: object = {}) {
         this.send({
             cmd: cmd,
             args: args,
@@ -123,16 +203,16 @@ export class StreamService {
         this.send({raw_input: cmd})
     }
 
-    processResponse(payload: any) {
-        let d = JSON.parse(payload);
-        let stream = d.stream;
-        let data = d.data;
+    processResponse(payload: string) {
+        const d = JSON.parse(payload);
+        const stream = d.stream;
+        const data = d.data;
         switch (stream) {
             case StreamType.LOGGER:
-                let ts = data.ts;
-                let time = parseInt(ts.toString().split('.')[0], 10);
-                let taskId = data.taskId;
-                let msg = data.msg;
+                const ts = data.ts;
+                const time = parseInt(ts.toString().split('.')[0], 10);
+                const taskId = data.taskId;
+                const msg = data.msg;
                 this.emitLogger(new Date(time * 1000).toISOString() +
                     ` ${taskId} - ${msg}`, taskId);
                 break;
@@ -157,19 +237,19 @@ export class StreamService {
                     this.emitLogger(d.output);
                 }
                 else if (d.output && Array.isArray(d.output)) {
-                    for (let entry of d.output) {
+                    for (const entry of d.output) {
                         this.emitLogger(entry);
                     }
                 }
                 else if (d.data && Array.isArray(d.data) && d.cmd !== 'ps') {
-                    for (let entry of d.data) {
+                    for (const entry of d.data) {
                         if (typeof entry === 'string') {
                             this.emitLogger(entry);
                         }
                         else {
-                            let ts = entry.ts;
-                            let time = parseInt(ts.toString().split('.')[0], 10);
-                            let taskId = entry.taskId;
+                            const ts = entry.ts;
+                            const time = parseInt(ts.toString().split('.')[0], 10);
+                            const taskId = entry.taskId;
                             this.emitLogger(new Date(time * 1000).toISOString() +
                                 ` ${taskId} - ${entry.msg}`);
                         }
@@ -183,7 +263,8 @@ export class StreamService {
         }
     }
 
-    emit(streamType: StreamType, data: any, taskId: number = 0) {
+    // eslint-disable-next-line
+    emit(streamType: AllowedStreamTypes, data: any, taskId: number = 0) {
         this.event.emit({
             type: streamType,
             taskId: taskId,

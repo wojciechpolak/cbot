@@ -29,8 +29,8 @@ import { environment } from '../../environments/environment';
 export class AppStatusComponent implements AfterViewInit, OnDestroy {
 
     streamSub!: Subscription;
-    stats: any;
-    version: any = environment.version;
+    stats: unknown;
+    version = environment.version;
 
     constructor(private streamService: StreamService) {
     }

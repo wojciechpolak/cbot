@@ -1,7 +1,7 @@
 /**
  * task-list.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -92,15 +92,15 @@ export class AppTaskListComponent implements AfterViewInit, OnDestroy {
 
     onStream(event: StreamEvent) {
         if (event.type === StreamType.LOGGER) {
-            let task = this.tasksRunning.find(item => item.id === event.taskId)
+            const task = this.tasksRunning.find(item => item.id === event.taskId)
             if (task && ('' + event.data).length < 200) {
                 task.output = event.data;
             }
         }
         else if (event.type === StreamType.RESULT && event.data.cmd === 'get') {
             const data = event.data.data;
-            for (let entry of data) {
-                let task = this.tasksRunning.find(item => item.id === entry.taskId);
+            for (const entry of data) {
+                const task = this.tasksRunning.find(item => item.id === entry.taskId);
                 if (task && ('' + entry.msg).length < 200) {
                     task.output = entry.msg;
                 }
@@ -115,7 +115,7 @@ export class AppTaskListComponent implements AfterViewInit, OnDestroy {
             this.tasksFinished = tasks.filter(item => item.is_finished);
         }
         else if (event.type === StreamType.CRYPTO_TSL_UPDATE) {
-            let task = this.tasksRunning.find(item => item.id === event.taskId)
+            const task = this.tasksRunning.find(item => item.id === event.taskId)
             if (task && event.taskId) {
                 task.data = event.data;
             }
@@ -123,14 +123,14 @@ export class AppTaskListComponent implements AfterViewInit, OnDestroy {
         else if (event.type === StreamType.CLONE_TASK) {
             this.closeCreateTask();
             this.cd.detectChanges();
-            this.cloneTask = event.data as Task;
+            this.cloneTask = event.data;
             this.modifyTask = null;
             this.openCreateTask();
         }
         else if (event.type === StreamType.MODIFY_TASK) {
             this.closeCreateTask();
             this.cd.detectChanges();
-            this.modifyTask = event.data as Task;
+            this.modifyTask = event.data;
             this.cloneTask = null;
             this.openCreateTask();
         }

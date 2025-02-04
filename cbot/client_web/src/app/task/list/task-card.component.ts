@@ -1,7 +1,7 @@
 /**
  * task-card.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -66,7 +66,7 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
     onStream(event: StreamEvent) {
         if (event.type === StreamType.TASK_INFO) {
             if (this.task.id === event.taskId) {
-                this.task.data = event.data?.info;
+                this.task.data = event.data.info;
                 if (this.cloningTask) {
                     this.streamService.emitCloneTask(this.task);
                     this.cloningTask = false;
@@ -124,24 +124,25 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
     }
 
     formatOutput(): string {
-        if (this.task.name === 'crypto_tsl') {
-            let cols = this.task.output?.split(';');
+        if (this.task.name === 'crypto_tsl' && typeof this.task.output === 'string') {
+            const cols = this.task.output.split(';');
             if (cols?.length > 1) {
-                let d_iter = cols[0];
-                let d_state = cols[1];
-                let d_symbol = cols[2];
-                let d_qty = cols[3];
-                let d_high = cols[4].replace('H ', 'HIGHEST ');
-                let d_cur = cols[5]
+                const d_iter = cols[0];
+                const d_state = cols[1];
+                const d_symbol = cols[2];
+                const d_qty = cols[3];
+                const d_high = cols[4].replace('H ', 'HIGHEST ');
+                const d_cur = cols[5]
                     .replace('CUR ', 'CURRENT ')
                     .replace('PD:', 'PriceDiff: ');
-                let d_stop = cols[6].replace('GAP:', 'GAP: ');
-                let d_limit = cols[7];
+                const d_stop = cols[6].replace('GAP:', 'GAP: ');
+                const d_limit = cols[7];
                 return `${d_iter}; ${d_state}; ${d_symbol}; ${d_qty}<br>
 ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
             }
+            return this.task.output;
         }
-        return this.task.output;
+        return '';
     }
 }
 
@@ -162,6 +163,6 @@ ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
     ]
 })
 export class ConfirmDialogComponent {
-    constructor(@Inject(MAT_DIALOG_DATA) public data: any) {
+    constructor(@Inject(MAT_DIALOG_DATA) public data: {taskId: number}) {
     }
 }

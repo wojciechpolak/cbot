@@ -1,7 +1,7 @@
 /**
  * task-create.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -23,6 +23,7 @@ import { UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule }
 import { AppMaterialModules } from '../../app-modules';
 import { StreamService } from '../../services/stream.service';
 import { Task, TaskInput, TaskMap } from '../task';
+import { UtilsService } from '../../services/utils.service';
 
 const TaskCommonInputs: TaskInput[] = [
     {name: 'cron'},
@@ -131,7 +132,7 @@ export class AppTaskCreateComponent implements OnInit {
     @Output() closeCreate = new EventEmitter();
 
     form = new UntypedFormGroup({});
-    formFields: any[] = [];
+    formFields: TaskInput[] = [];
     refTask: Task | null = null;
     taskList = [
         'bin_live',
@@ -174,9 +175,9 @@ export class AppTaskCreateComponent implements OnInit {
                 args = [];
             }
         }
-        let kwargs: any = {};
-        let formValues = this.form.value;
-        for (let k in formValues) {
+        const kwargs: Record<string, string> = {};
+        const formValues = this.form.value;
+        for (const k in formValues) {
             if (formValues.hasOwnProperty(k)) {
                 if (formValues[k] !== null) {
                     if (k !== 'cmd' && k !== 'args') {
@@ -185,7 +186,7 @@ export class AppTaskCreateComponent implements OnInit {
                 }
             }
         }
-        let payload = {
+        const payload = {
             cmd: this.modifyTask ? 'MODIFY' : this.form.controls['cmd'].value,
             args: this.modifyTask ? [this.refTask?.id] : args,
             kwargs: kwargs,
@@ -211,7 +212,7 @@ export class AppTaskCreateComponent implements OnInit {
             this.refTask = this.modifyTask;
         }
 
-        if (this.refTask) {
+        if (this.refTask && UtilsService.taskDataIsOp(this.refTask.data)) {
             taskName = this.refTask.data.op.cmd;
         }
 
@@ -224,16 +225,16 @@ export class AppTaskCreateComponent implements OnInit {
             });
         }
 
-        let taskDef = TaskCreateMap[taskName] ?? [];
+        const taskDef = TaskCreateMap[taskName] ?? [];
         this.formFields = taskDef;
-        for (let d of taskDef) {
+        for (const d of taskDef) {
             this.form.addControl(d.name, new UntypedFormControl(d.default,
                 d.required ? Validators.required : null));
         }
-        if (this.refTask) {
+        if (this.refTask && UtilsService.taskDataIsOp(this.refTask.data)) {
             const op = this.refTask.data.op;
-            let args = [];
-            for (let arg of op.args) {
+            const args = [];
+            for (const arg of op.args) {
                 if (arg in this.form.controls) {
                     this.form.controls[arg].setValue(true);
                 }
@@ -242,7 +243,7 @@ export class AppTaskCreateComponent implements OnInit {
                 }
             }
             this.form.controls['args'].setValue(args.join(' '));
-            for (let k in op.kwargs) {
+            for (const k in op.kwargs) {
                 if (op.kwargs.hasOwnProperty(k)) {
                     this.form.controls[k].setValue(op.kwargs[k]);
                 }

@@ -1,7 +1,7 @@
 /**
  * binlive.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,7 +20,7 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { StreamEvent, StreamService, StreamType } from '../services/stream.service';
+import { BinLive, StreamEvent, StreamService, StreamType } from '../services/stream.service';
 
 
 @Component({
@@ -30,7 +30,7 @@ import { StreamEvent, StreamService, StreamType } from '../services/stream.servi
 })
 export class AppBinLiveComponent implements AfterViewInit, OnDestroy {
 
-    binLive = [];
+    binLive: BinLive[] = [];
     binLiveLastUpdate: Date = new Date();
     streamSub!: Subscription;
 

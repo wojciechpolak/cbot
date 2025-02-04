@@ -1,7 +1,7 @@
 /**
  * task.d
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -35,6 +35,12 @@ export interface Task {
     is_paused: boolean;
     start_time: number;
     desc: string;
-    data: any;
-    output: any;
+    data: string | {op: Operation};
+    output: string | string[];
+}
+
+export interface Operation {
+    cmd: string;
+    args: string[];
+    kwargs: Record<string, string>;
 }

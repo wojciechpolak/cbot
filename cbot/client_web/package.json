@@ -10,6 +10,7 @@
     "postbuild": "gzipper compress --gzip-level=9 --include js,json,css,html ./dist",
     "watch": "ng build --watch --configuration development",
     "lint": "ng lint",
+    "lint:fix": "ng lint --fix",
     "test": "ng test --watch=false"
   },
   "private": true,

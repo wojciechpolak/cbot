@@ -1,7 +1,7 @@
 /**
  * utils.service
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -17,10 +17,13 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { Operation } from '../task/task';
+
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class UtilsService {
 
     static toDate(ts: number): string {
-        let time = parseInt(ts.toString().split('.')[0], 10);
+        const time = parseInt(ts.toString().split('.')[0], 10);
         return new Date(time * 1000)
             .toISOString()
             .replace('T', ' ')
@@ -29,11 +32,11 @@ export class UtilsService {
 
     static formatFromNow(value: number, lang: string = 'en') {
         if (Intl && Intl.RelativeTimeFormat) {
-            let rtf = new Intl.RelativeTimeFormat(lang, {
+            const rtf = new Intl.RelativeTimeFormat(lang, {
                 style: 'long',
                 numeric: 'always'
             });
-            let secDiff = Math.floor((new Date().getTime() - value * 1000) / 1000);
+            const secDiff = Math.floor((new Date().getTime() - value * 1000) / 1000);
             let ret;
             if (secDiff < 60) {
                 ret = rtf.format(-secDiff, 'second');
@@ -50,5 +53,9 @@ export class UtilsService {
             return ret;
         }
         return '';
+    }
+
+    static taskDataIsOp(data: unknown): data is {op: Operation} {
+        return !!(typeof data === 'object' && data && 'op' in data);
     }
 }

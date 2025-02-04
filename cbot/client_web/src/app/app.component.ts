@@ -1,7 +1,7 @@
 /**
  * app.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -28,7 +28,7 @@ import { AppMaterialModules } from './app-modules';
 import { AppStatusComponent } from './status/status.component';
 import { AppTaskListComponent } from './task/list/task-list.component';
 import { AppTerminalComponent } from './terminal/terminal.component';
-import { StreamEvent, StreamService, StreamType } from './services/stream.service';
+import { BinLiveTicker, StreamEvent, StreamService, StreamType } from './services/stream.service';
 
 enum Tabs {
     TERMINAL = 0,
@@ -53,7 +53,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
     binLiveLastUpdate: Date = new Date();
     binLiveNotification: boolean = false;
-    binLiveTickers = [];
+    binLiveTickers: BinLiveTicker[] = [];
     currentTab: Tabs = Tabs.TASKS;
     selectedTabIndex: number = 1;
     streamSub!: Subscription;
@@ -85,7 +85,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
                 case 'VERSION_READY':
                     this.streamService.emitLogger(`Current app version: ${evt.currentVersion.hash}`);
                     this.streamService.emitLogger(`New app version ready for use: ${evt.latestVersion.hash}`);
-                    let snack = this.snackBar.open('New app version is available.', 'Reload');
+                    const snack = this.snackBar.open('New app version is available.', 'Reload');
                     snack.onAction().subscribe(() => {
                         this.swUpdate.activateUpdate()
                             .then(() => document.location.reload());
@@ -98,7 +98,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
         });
 
         this.swUpdate.unrecoverable.subscribe(event => {
-            let snack = this.snackBar.open(
+            const snack = this.snackBar.open(
                 `An error occurred that we cannot recover from: ${event.reason}`, 'Reload');
             snack.onAction().subscribe(() => {
                 document.location.reload();
@@ -133,7 +133,7 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
 
     onStream(event: StreamEvent) {
         if (event.type === StreamType.BIN_LIVE_UPDATE) {
-            let newDate = new Date();
+            const newDate = new Date();
             this.binLiveNotification = newDate > this.binLiveLastUpdate;
         }
         else if (event.type === StreamType.STREAM_TICKERS) {

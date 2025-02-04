@@ -1,7 +1,7 @@
 /**
  * terminal.component
  *
- * CBot Copyright (C) 2022 Wojciech Polak
+ * CBot Copyright (C) 2022-2025 Wojciech Polak
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -71,11 +71,11 @@ export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
 
     onEnter($event: Event) {
         $event.preventDefault();
-        let dom_input = (document.querySelector('#input') as HTMLInputElement);
+        const dom_input = (document.querySelector('#input') as HTMLInputElement);
         if (!dom_input) {
             return;
         }
-        let input = dom_input.value;
+        const input = dom_input.value;
         if (!input) {
             return;
         }
@@ -84,10 +84,10 @@ export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
             this.resetTerminal()
             return;
         }
-        let d = {
+        const d = {
             raw_input: input
         }
-        let payload = JSON.stringify(d);
+        const payload = JSON.stringify(d);
         if (this.is_debug) {
             this.log('SEND ' + payload);
         }
@@ -96,10 +96,10 @@ export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     log(msg: string) {
-        let message = document.createElement('li');
-        let content = document.createTextNode(msg);
+        const message = document.createElement('li');
+        const content = document.createTextNode(msg);
         message.appendChild(content);
-        let output = document.querySelector('#output') as HTMLDivElement;
+        const output = document.querySelector('#output') as HTMLDivElement;
         if (output) {
             output.appendChild(message);
             output.scrollTop = output.scrollHeight;
@@ -117,7 +117,7 @@ export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     resetTerminal() {
-        let output = document.querySelector('#output') as HTMLDivElement;
+        const output = document.querySelector('#output') as HTMLDivElement;
         if (output) {
             output.innerHTML = '';
         }
