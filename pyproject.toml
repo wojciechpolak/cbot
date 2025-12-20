@@ -1,24 +1,29 @@
-[tool.poetry]
+[project]
 name = "cbot"
 version = "0.1.0"
 description = ""
-authors = ["WAP"]
+authors = [{ name = "WAP" }]
+requires-python = ">=3.11,<4"
+dependencies = [
+    "ccxt==4.4.12",
+    "pandas>=2.2.3,<3",
+    "pycron==3.0.0",
+    "python-binance==1.0.19",
+    "requests==2.32.3",
+    "setproctitle==1.2.2",
+    "stockstats>=0.6.3,<0.7",
+    "websockets==13.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-ccxt = "4.4.12"
-pandas = "^2.2.3"
-pycron = "3.0.0"
-python-binance = "1.0.19"
-requests = "2.32.3"
-setproctitle = "1.2.2"
-stockstats = "^0.6.3"
-websockets = "13.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "8.3.3"
-pylint = "3.3.3"
+[dependency-groups]
+dev = [
+    "pytest==9.0.2",
+    "ruff>=0.14.10",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cbot"]

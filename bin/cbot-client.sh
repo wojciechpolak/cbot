@@ -22,7 +22,7 @@ DIR="$( dirname $DIR )"
 
 # Activate the virtual environment
 cd $DIR
-[[ -e venv/bin/activate ]] && source venv/bin/activate
+[[ -e .venv/bin/activate ]] && source .venv/bin/activate
 
 export PYTHONPATH="${PYTHONPATH}:$DIR"
 

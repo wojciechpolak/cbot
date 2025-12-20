@@ -22,7 +22,7 @@ set -e
 
 PLATFORMS=${PLATFORMS:-linux/amd64,linux/arm64}
 
-npm run prebuild
+(cd ./cbot/client_web && npm run prebuild)
 
 # Split the platforms into an array
 IFS=',' read -ra PLATFORM_ARRAY <<< "$PLATFORMS"
@@ -42,5 +42,5 @@ for PLATFORM in "${PLATFORM_ARRAY[@]}"; do
     IMAGE_NAME="wap/cbot/${ARCH}"
 
     set -xe
-    docker build . -t $IMAGE_NAME --platform $PLATFORM
+    docker build . -t $IMAGE_NAME --platform $PLATFORM --build-arg TARGETARCH="$ARCH"
 done

@@ -40,13 +40,10 @@ APP_IMAGE=wap/cbot docker compose up
 
 2. Install dependencies
 
-   Install Python dependencies using
-   [Poetry](https://python-poetry.org/) or PIP.
+   Install Python necessary dependencies using [uv](https://docs.astral.sh/uv/).
 
    ```shell
-   $ poetry install
-   # or
-   $ pip install -r requirements.txt
+   $ uv sync
    ```
 
    Install Web UI dependencies.
