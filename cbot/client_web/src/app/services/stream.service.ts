@@ -22,25 +22,26 @@ import { APP_BASE_HREF } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { Task } from '../task/task';
 
-export enum StreamType {
-    BIN_LIVE_UPDATE = 'BIN_LIVE_UPDATE',
-    CLONE_TASK = 'CLONE_TASK',
-    CMC_LATEST_UPDATE = 'CMC_LATEST_UPDATE',
-    CRYPTO_STATS = 'CRYPTO_STATS',
-    CRYPTO_TSL_UPDATE = 'CRYPTO_TSL_UPDATE',
-    LOGGER = 'LOGGER',
-    MODIFY_TASK = 'MODIFY_TASK',
-    RESULT = 'RESULT',
-    STREAM_TICKERS = 'STREAM_TICKERS',
-    TASK_FINISHED = 'TASK_FINISHED',
-    TASK_INFO = 'TASK_INFO',
-    TASK_MANAGER = 'TASK_MANAGER',
-    TASK_MODIFIED = 'TASK_MODIFIED',
-    TICKER_UPDATE = 'TICKER_UPDATE',
-}
+export const StreamType = {
+    BIN_LIVE_UPDATE: 'BIN_LIVE_UPDATE',
+    CLONE_TASK: 'CLONE_TASK',
+    CMC_LATEST_UPDATE: 'CMC_LATEST_UPDATE',
+    CRYPTO_STATS: 'CRYPTO_STATS',
+    CRYPTO_TSL_UPDATE: 'CRYPTO_TSL_UPDATE',
+    LOGGER: 'LOGGER',
+    MODIFY_TASK: 'MODIFY_TASK',
+    RESULT: 'RESULT',
+    STREAM_TICKERS: 'STREAM_TICKERS',
+    TASK_FINISHED: 'TASK_FINISHED',
+    TASK_INFO: 'TASK_INFO',
+    TASK_MANAGER: 'TASK_MANAGER',
+    TASK_MODIFIED: 'TASK_MODIFIED',
+    TICKER_UPDATE: 'TICKER_UPDATE',
+} as const;
+export type StreamType = (typeof StreamType)[keyof typeof StreamType];
 
 export interface StreamResult {
-    type: StreamType.RESULT;
+    type: typeof StreamType.RESULT;
     data: {
         cmd: string;
         data: {
@@ -51,13 +52,13 @@ export interface StreamResult {
 }
 
 export interface StreamLogger {
-    type: StreamType.LOGGER;
+    type: typeof StreamType.LOGGER;
     taskId: number;
     data: string;
 }
 
 export interface StreamTaskInfo {
-    type: StreamType.TASK_INFO;
+    type: typeof StreamType.TASK_INFO;
     taskId: number;
     data: {
         info: string;
@@ -65,24 +66,24 @@ export interface StreamTaskInfo {
 }
 
 export interface StreamTaskManager {
-    type: StreamType.TASK_MANAGER;
+    type: typeof StreamType.TASK_MANAGER;
     data: {
         tasks: Task[];
     }
 }
 
 export interface StreamCloneTask {
-    type: StreamType.CLONE_TASK;
+    type: typeof StreamType.CLONE_TASK;
     data: Task;
 }
 
 export interface StreamModifyTask {
-    type: StreamType.MODIFY_TASK;
+    type: typeof StreamType.MODIFY_TASK;
     data: Task;
 }
 
 export interface StreamCryptoTslUpdate {
-    type: StreamType.CRYPTO_TSL_UPDATE;
+    type: typeof StreamType.CRYPTO_TSL_UPDATE;
     taskId: number;
     data: string;
 }
@@ -97,7 +98,7 @@ export interface BinLive {
 }
 
 export interface StreamBinLiveUpdate {
-    type: StreamType.BIN_LIVE_UPDATE;
+    type: typeof StreamType.BIN_LIVE_UPDATE;
     data: BinLive[];
 }
 
@@ -108,7 +109,7 @@ export interface BinLiveTicker {
 }
 
 export interface StreamTickers {
-    type: StreamType.STREAM_TICKERS;
+    type: typeof StreamType.STREAM_TICKERS;
     data: BinLiveTicker[];
 }
 

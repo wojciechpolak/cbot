@@ -30,13 +30,14 @@ import { AppTaskListComponent } from './task/list/task-list.component';
 import { AppTerminalComponent } from './terminal/terminal.component';
 import { BinLiveTicker, StreamEvent, StreamService, StreamType } from './services/stream.service';
 
-enum Tabs {
-    TERMINAL = 0,
-    TASKS = 1,
-    BIN_LIVE = 2,
-    TICKERS = 3,
-    STATUS = 4,
-}
+const Tabs = {
+    TERMINAL: 0,
+    TASKS: 1,
+    BIN_LIVE: 2,
+    TICKERS: 3,
+    STATUS: 4,
+} as const;
+export type Tabs = (typeof Tabs)[keyof typeof Tabs];
 
 @Component({
     selector: 'app-root',
@@ -139,7 +140,15 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
         }
     }
 
+    private readonly tabValues = Object.values(Tabs) as Tabs[];
+    private isTab(n: number): n is Tabs {
+        return (this.tabValues as readonly number[]).includes(n);
+    }
+
     onTabChange(tabIndex: number) {
+        if (!this.isTab(tabIndex)) {
+            return;
+        }
         this.currentTab = tabIndex;
         if (this.currentTab !== Tabs.BIN_LIVE) {
             this.binLiveNotification = false;
