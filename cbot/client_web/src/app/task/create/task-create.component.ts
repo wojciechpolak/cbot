@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { AppMaterialModules } from '../../app-modules';
@@ -126,6 +126,7 @@ export const TaskCreateMap: TaskMap = {
     ]
 })
 export class AppTaskCreateComponent implements OnInit {
+    private streamService = inject(StreamService);
 
     @Input() cloneTask: Task | null = null;
     @Input() modifyTask: Task | null = null;
@@ -156,9 +157,6 @@ export class AppTaskCreateComponent implements OnInit {
         'crypto_tsl',
         'ping',
     ];
-
-    constructor(private streamService: StreamService) {
-    }
 
     ngOnInit() {
         this.buildForm();

@@ -17,16 +17,14 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { StreamService } from '../services/stream.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TaskService {
-
-    constructor(private streamService: StreamService) {
-    }
+    private streamService = inject(StreamService);
 
     getInfo(id: number) {
         this.streamService.callCmd('info', ['' + id]);

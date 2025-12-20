@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { StreamEvent, StreamService, StreamType } from '../services/stream.service';
 import { environment } from '../../environments/environment';
@@ -27,13 +27,11 @@ import { environment } from '../../environments/environment';
     templateUrl: './status.component.html'
 })
 export class AppStatusComponent implements AfterViewInit, OnDestroy {
+    private streamService = inject(StreamService);
 
     streamSub!: Subscription;
     stats: unknown;
     version = environment.version;
-
-    constructor(private streamService: StreamService) {
-    }
 
     ngAfterViewInit() {
         this.streamSub = this.streamService.event.subscribe((data: StreamEvent) => {

@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { EventEmitter, Inject, Injectable } from '@angular/core';
+import { EventEmitter, Injectable, inject } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { Task } from '../task/task';
@@ -129,6 +129,7 @@ type AllowedStreamTypes = StreamEvent['type'];
     providedIn: 'root'
 })
 export class StreamService {
+    private baseHref = inject(APP_BASE_HREF);
 
     endpoint: string;
     event: EventEmitter<StreamEvent> = new EventEmitter();
@@ -137,7 +138,9 @@ export class StreamService {
     isOnline$ = new BehaviorSubject<boolean>(window.navigator.onLine);
     ws!: WebSocket;
 
-    constructor(@Inject(APP_BASE_HREF) private baseHref: string) {
+    constructor() {
+        const baseHref = this.baseHref;
+
         const loc = window.location;
         const host = (!loc || loc.hostname === 'localhost') ?
             'localhost:2269' : `${loc.hostname}:${loc.port}`;

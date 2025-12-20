@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
@@ -38,15 +38,13 @@ import { TaskList } from '../task/list/task-list.component';
     ]
 })
 export class AppTerminalComponent implements AfterViewInit, OnDestroy, OnInit {
+    private streamService = inject(StreamService);
 
     cmd_options: string[] = TaskList;
     filteredOptions!: Observable<string[]>;
     inputControl = new UntypedFormControl();
     is_debug: boolean = false;
     streamSub!: Subscription;
-
-    constructor(private streamService: StreamService) {
-    }
 
     ngOnInit() {
         this.log('Welcome!');

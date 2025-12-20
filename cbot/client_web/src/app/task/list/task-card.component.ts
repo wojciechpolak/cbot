@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, Component, EventEmitter, Inject, Input, OnDestroy, Output } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
@@ -36,6 +36,9 @@ import { UtilsService } from '../../services/utils.service';
     ]
 })
 export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
+    dialog = inject(MatDialog);
+    private streamService = inject(StreamService);
+    private taskService = inject(TaskService);
 
     @Input() task!: Task;
     @Output() switchToTerminal = new EventEmitter();
@@ -45,11 +48,6 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
     showTaskData = false;
     streamSub!: Subscription;
     UtilsService: typeof UtilsService = UtilsService;
-
-    constructor(public dialog: MatDialog,
-                private streamService: StreamService,
-                private taskService: TaskService) {
-    }
 
     ngAfterViewInit() {
         this.streamSub = this.streamService.event.subscribe((data: StreamEvent) => {
@@ -163,6 +161,7 @@ ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
     ]
 })
 export class ConfirmDialogComponent {
-    constructor(@Inject(MAT_DIALOG_DATA) public data: {taskId: number}) {
-    }
+    data = inject<{
+    taskId: number;
+}>(MAT_DIALOG_DATA);
 }

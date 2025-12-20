@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, ApplicationRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ApplicationRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { concat, interval, Subscription } from 'rxjs';
@@ -50,6 +50,10 @@ enum Tabs {
     ]
 })
 export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
+    private appRef = inject(ApplicationRef);
+    private swUpdate = inject(SwUpdate);
+    private snackBar = inject(MatSnackBar);
+    private streamService = inject(StreamService);
 
     binLiveLastUpdate: Date = new Date();
     binLiveNotification: boolean = false;
@@ -58,12 +62,6 @@ export class AppComponent implements AfterViewInit, OnDestroy, OnInit {
     selectedTabIndex: number = 1;
     streamSub!: Subscription;
     Tabs: typeof Tabs = Tabs;
-
-    constructor(private appRef: ApplicationRef,
-                private swUpdate: SwUpdate,
-                private snackBar: MatSnackBar,
-                private streamService: StreamService) {
-    }
 
     ngOnInit() {
         this.streamService.isOnline$.subscribe((isOnline: boolean) => {

@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { BinLive, StreamEvent, StreamService, StreamType } from '../services/stream.service';
@@ -29,13 +29,11 @@ import { BinLive, StreamEvent, StreamService, StreamType } from '../services/str
     imports: [NgClass]
 })
 export class AppBinLiveComponent implements AfterViewInit, OnDestroy {
+    private streamService = inject(StreamService);
 
     binLive: BinLive[] = [];
     binLiveLastUpdate: Date = new Date();
     streamSub!: Subscription;
-
-    constructor(private streamService: StreamService) {
-    }
 
     ngAfterViewInit() {
         this.streamSub = this.streamService.event.subscribe((data: StreamEvent) => {

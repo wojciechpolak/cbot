@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, Output, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { AppMaterialModules } from '../../app-modules';
@@ -63,6 +63,9 @@ export const TaskList = [
     ]
 })
 export class AppTaskListComponent implements AfterViewInit, OnDestroy {
+    private cd = inject(ChangeDetectorRef);
+    private taskService = inject(TaskService);
+    private streamService = inject(StreamService);
 
     cloneTask: Task | null = null;
     modifyTask: Task | null = null;
@@ -72,11 +75,6 @@ export class AppTaskListComponent implements AfterViewInit, OnDestroy {
     tasksRunning: Task[] = [];
 
     @Output() switchToTerminal = new EventEmitter();
-
-    constructor(private cd: ChangeDetectorRef,
-                private taskService: TaskService,
-                private streamService: StreamService) {
-    }
 
     ngAfterViewInit() {
         this.streamSub = this.streamService.event.subscribe((data: StreamEvent) => {
