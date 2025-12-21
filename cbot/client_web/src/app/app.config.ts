@@ -20,7 +20,6 @@
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { provideRouter } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideServiceWorker } from '@angular/service-worker';
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -71,7 +70,6 @@ export const appConfig: ApplicationConfig = {
             // or after 30 seconds (whichever comes first).
             registrationStrategy: 'registerWhenStable:30000'
         }),
-        provideAnimations(),
         {provide: APP_BASE_HREF, useValue: environment.baseHref},
     ]
 };

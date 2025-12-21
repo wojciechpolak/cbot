@@ -17,7 +17,7 @@
       "target": "ES2022",
       "module": "es2020",
       "useDefineForClassFields": false,
-      "erasableSyntaxOnly": true,
+      "erasableSyntaxOnly": true
     },
     "angularCompilerOptions": {
         "enableI18nLegacyMessageIdFormat": false,

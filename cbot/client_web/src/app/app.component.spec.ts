@@ -20,21 +20,24 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { ServiceWorkerModule } from '@angular/service-worker';
+import { provideServiceWorker } from '@angular/service-worker';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { AppComponent } from './app.component';
+import { provideRouter } from '@angular/router';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('AppComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [
-                RouterTestingModule,
                 MatSnackBarModule,
-                ServiceWorkerModule.register('ngsw-worker.js', {enabled: false}),
                 AppComponent,
             ],
             providers: [
+                provideRouter([]),
+                provideServiceWorker('ngsw-worker.js', {
+                    enabled: false,
+                }),
                 {
                     provide: APP_BASE_HREF,
                     useValue: '/'
