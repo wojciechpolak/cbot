@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, inject, input, output } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Subscription } from 'rxjs';
@@ -40,8 +40,8 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
     private streamService = inject(StreamService);
     private taskService = inject(TaskService);
 
-    @Input() task!: Task;
-    @Output() switchToTerminal = new EventEmitter();
+    readonly task = input.required<Task>();
+    readonly switchToTerminal = output();
 
     private cloningTask: boolean = false;
     private modifyingTask: boolean = false;
@@ -63,14 +63,15 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
 
     onStream(event: StreamEvent) {
         if (event.type === StreamType.TASK_INFO) {
-            if (this.task.id === event.taskId) {
-                this.task.data = event.data.info;
+            const task = this.task();
+            if (task.id === event.taskId) {
+                task.data = event.data.info;
                 if (this.cloningTask) {
-                    this.streamService.emitCloneTask(this.task);
+                    this.streamService.emitCloneTask(task);
                     this.cloningTask = false;
                 }
                 else if (this.modifyingTask) {
-                    this.streamService.emitModifyTask(this.task);
+                    this.streamService.emitModifyTask(task);
                     this.modifyingTask = false;
                 }
                 else {
@@ -83,47 +84,48 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
     toggleTaskInfo() {
         this.showTaskData = !this.showTaskData;
         if (this.showTaskData) {
-            this.taskService.getInfo(this.task.id);
+            this.taskService.getInfo(this.task().id);
         }
     }
 
     getTaskOutput() {
-        this.taskService.getOutput(this.task.id);
+        this.taskService.getOutput(this.task().id);
         this.switchToTerminal.emit();
     }
 
     pauseTask() {
-        this.taskService.pause(this.task.id);
+        this.taskService.pause(this.task().id);
     }
 
     killTask() {
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-            data: {taskId: this.task.id}
+            data: {taskId: this.task().id}
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.taskService.kill(this.task.id);
+                this.taskService.kill(this.task().id);
             }
         });
     }
 
     cloneTask() {
         this.cloningTask = true;
-        this.taskService.getInfo(this.task.id);
+        this.taskService.getInfo(this.task().id);
     }
 
     modifyTask() {
         this.modifyingTask = true;
-        this.taskService.getInfo(this.task.id);
+        this.taskService.getInfo(this.task().id);
     }
 
     formatData(): string {
-        return JSON.stringify(this.task.data, undefined, 4);
+        return JSON.stringify(this.task().data, undefined, 4);
     }
 
     formatOutput(): string {
-        if (this.task.name === 'crypto_tsl' && typeof this.task.output === 'string') {
-            const cols = this.task.output.split(';');
+        const task = this.task();
+        if (task.name === 'crypto_tsl' && typeof task.output === 'string') {
+            const cols = task.output.split(';');
             if (cols?.length > 1) {
                 const d_iter = cols[0];
                 const d_state = cols[1];
@@ -138,7 +140,7 @@ export class AppTaskCardComponent implements AfterViewInit, OnDestroy {
                 return `${d_iter}; ${d_state}; ${d_symbol}; ${d_qty}<br>
 ${d_high}<br>${d_cur}<br>${d_stop}; ${d_limit}`;
             }
-            return this.task.output;
+            return task.output;
         }
         return '';
     }

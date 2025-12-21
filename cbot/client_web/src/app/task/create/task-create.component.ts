@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { AppMaterialModules } from '../../app-modules';
@@ -128,9 +128,9 @@ export const TaskCreateMap: TaskMap = {
 export class AppTaskCreateComponent implements OnInit {
     private streamService = inject(StreamService);
 
-    @Input() cloneTask: Task | null = null;
-    @Input() modifyTask: Task | null = null;
-    @Output() closeCreate = new EventEmitter();
+    readonly cloneTask = input<Task | null>(null);
+    readonly modifyTask = input<Task | null>(null);
+    readonly closeCreate = output();
 
     form = new UntypedFormGroup({});
     formFields: TaskInput[] = [];
@@ -185,8 +185,8 @@ export class AppTaskCreateComponent implements OnInit {
             }
         }
         const payload = {
-            cmd: this.modifyTask ? 'MODIFY' : this.form.controls['cmd'].value,
-            args: this.modifyTask ? [this.refTask?.id] : args,
+            cmd: this.modifyTask() ? 'MODIFY' : this.form.controls['cmd'].value,
+            args: this.modifyTask() ? [this.refTask?.id] : args,
             kwargs: kwargs,
         }
         if (this.taskRunCmd.includes(payload.cmd)) {
@@ -203,18 +203,20 @@ export class AppTaskCreateComponent implements OnInit {
     }
 
     buildForm(taskName: string = '') {
-        if (this.cloneTask) {
-            this.refTask = this.cloneTask;
+        const modifyTask = this.modifyTask();
+        const cloneTask = this.cloneTask();
+        if (cloneTask) {
+            this.refTask = cloneTask;
         }
-        else if (this.modifyTask) {
-            this.refTask = this.modifyTask;
+        else if (modifyTask) {
+            this.refTask = modifyTask;
         }
 
         if (this.refTask && UtilsService.taskDataIsOp(this.refTask.data)) {
             taskName = this.refTask.data.op.cmd;
         }
 
-        if (this.modifyTask) {
+        if (modifyTask) {
             this.form = new UntypedFormGroup({});
         }
         else {
@@ -247,7 +249,7 @@ export class AppTaskCreateComponent implements OnInit {
                 }
             }
         }
-        if (!this.modifyTask) {
+        if (!modifyTask) {
             this.form.controls['cmd'].setValue(taskName);
         }
     }

@@ -17,7 +17,7 @@
  * with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, OnDestroy, Output, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, inject, output } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { AppMaterialModules } from '../../app-modules';
@@ -74,7 +74,7 @@ export class AppTaskListComponent implements AfterViewInit, OnDestroy {
     tasksFinished: Task[] = [];
     tasksRunning: Task[] = [];
 
-    @Output() switchToTerminal = new EventEmitter();
+    readonly switchToTerminal = output();
 
     ngAfterViewInit() {
         this.streamSub = this.streamService.event.subscribe((data: StreamEvent) => {

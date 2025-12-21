@@ -1,4 +1,4 @@
-@if (!modifyTask) {
+@if (!modifyTask()) {
     <h2>Create Task</h2>
 }
 @else {
@@ -6,7 +6,7 @@
 }
 
 <form [formGroup]="form" (ngSubmit)="create()">
-    @if (!modifyTask) {
+    @if (!modifyTask()) {
         <mat-form-field class="app-form-field">
             <mat-label>Task</mat-label>
             <mat-select formControlName="cmd" (selectionChange)="changeTaskType()">
@@ -53,6 +53,6 @@
     }
     <nav>
         <button mat-flat-button color="secondary" (click)="cancel()">CANCEL</button>
-        <button mat-flat-button color="primary" type="submit">{{ modifyTask ? 'MODIFY' : 'LAUNCH' }}</button>
+        <button mat-flat-button color="primary" type="submit">{{ modifyTask() ? 'MODIFY' : 'LAUNCH' }}</button>
     </nav>
 </form>
